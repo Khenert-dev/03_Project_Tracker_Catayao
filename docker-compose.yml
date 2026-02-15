@@ -5,21 +5,14 @@ services:
       dockerfile: Dockerfile
     container_name: project_tracker_web
     ports:
-      - "8000:8000"
+      - "8000:80"
       - "5173:5173"
     volumes:
       - ./src:/var/www/html
-    working_dir: /var/www/html
-    command: >
-      bash -c "
-      php artisan key:generate --force &&
-      php artisan migrate --force &&
-      npm install &&
-      npm run dev &
-      apache2-foreground
-      "
     depends_on:
       - db
+    networks:
+      - project_network
 
   db:
     image: mysql:8
@@ -34,6 +27,11 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - project_network
+
+networks:
+  project_network:
 
 volumes:
   db_data:

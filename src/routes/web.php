@@ -3,19 +3,30 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return redirect()->route('projects.index');
-});
+/*
+|--------------------------------------------------------------------------
+| Public Landing Page
+|--------------------------------------------------------------------------
+*/
 
-Route::get('/dashboard', function () {
-    return redirect()->route('projects.index');
-})->middleware(['auth'])->name('dashboard');
+Route::get('/', function () {
+    return Inertia::render('Welcome');
+})->name('home');
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth'])->group(function () {
+
+    Route::get('/dashboard', function () {
+        return redirect()->route('projects.index');
+    })->name('dashboard');
 
     Route::resource('projects', ProjectController::class);
     Route::resource('tasks', TaskController::class);
@@ -34,5 +45,11 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Auth Scaffolding
+|--------------------------------------------------------------------------
+*/
 
 require __DIR__.'/auth.php';
