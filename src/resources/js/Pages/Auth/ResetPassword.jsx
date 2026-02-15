@@ -1,9 +1,15 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react'
+import {
+    Box,
+    Card,
+    CardContent,
+    Typography,
+    TextField,
+    Button,
+    Stack,
+    CircularProgress,
+} from '@mui/material'
+import { alpha } from '@mui/material/styles'
 
 export default function ResetPassword({ token, email }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -11,84 +17,124 @@ export default function ResetPassword({ token, email }) {
         email: email,
         password: '',
         password_confirmation: '',
-    });
+    })
 
     const submit = (e) => {
-        e.preventDefault();
+        e.preventDefault()
 
         post(route('password.store'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
-    };
+            onFinish: () =>
+                reset('password', 'password_confirmation'),
+        })
+    }
 
     return (
-        <GuestLayout>
+        <>
             <Head title="Reset Password" />
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background:
+                        'radial-gradient(circle at 20% 20%, #1f2a44 0%, #0f172a 40%, #0a0f1c 100%)',
+                    p: 2,
+                }}
+            >
+                <Card
+                    sx={{
+                        width: 480,
+                        backdropFilter: 'blur(20px)',
+                        background: alpha('#ffffff', 0.06),
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: 4,
+                        boxShadow: '0 40px 100px rgba(0,0,0,0.65)',
+                        color: '#fff',
+                    }}
+                >
+                    <CardContent sx={{ p: 6 }}>
+                        <Typography
+                            variant="h5"
+                            fontWeight={700}
+                            textAlign="center"
+                            gutterBottom
+                        >
+                            Reset Password
+                        </Typography>
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                    />
+                        <Typography
+                            variant="body2"
+                            textAlign="center"
+                            sx={{ opacity: 0.7, mb: 4 }}
+                        >
+                            Enter your new password below.
+                        </Typography>
 
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
+                        <form onSubmit={submit}>
+                            <Stack spacing={3}>
+                                <TextField
+                                    label="Email"
+                                    type="email"
+                                    fullWidth
+                                    value={data.email}
+                                    onChange={(e) =>
+                                        setData('email', e.target.value)
+                                    }
+                                    error={!!errors.email}
+                                    helperText={errors.email}
+                                />
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                                <TextField
+                                    label="New Password"
+                                    type="password"
+                                    fullWidth
+                                    value={data.password}
+                                    onChange={(e) =>
+                                        setData('password', e.target.value)
+                                    }
+                                    error={!!errors.password}
+                                    helperText={errors.password}
+                                />
 
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        isFocused={true}
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
+                                <TextField
+                                    label="Confirm Password"
+                                    type="password"
+                                    fullWidth
+                                    value={data.password_confirmation}
+                                    onChange={(e) =>
+                                        setData(
+                                            'password_confirmation',
+                                            e.target.value
+                                        )
+                                    }
+                                    error={!!errors.password_confirmation}
+                                    helperText={
+                                        errors.password_confirmation
+                                    }
+                                />
 
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        type="password"
-                        id="password_confirmation"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Reset Password
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
-    );
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    size="large"
+                                    disabled={processing}
+                                >
+                                    {processing ? (
+                                        <CircularProgress
+                                            size={22}
+                                            sx={{ color: '#fff' }}
+                                        />
+                                    ) : (
+                                        'Reset Password'
+                                    )}
+                                </Button>
+                            </Stack>
+                        </form>
+                    </CardContent>
+                </Card>
+            </Box>
+        </>
+    )
 }

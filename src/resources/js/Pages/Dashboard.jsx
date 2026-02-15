@@ -1,26 +1,52 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react'
+import {
+    Box,
+    Typography,
+    AppBar,
+    Toolbar,
+    Button,
+    Container,
+    Stack,
+} from '@mui/material'
 
-export default function Dashboard() {
+export default function Dashboard({ auth }) {
+    const handleLogout = () => {
+        router.post(route('logout'))
+    }
+
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Dashboard
-                </h2>
-            }
-        >
+        <>
             <Head title="Dashboard" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            You're logged in!
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </AuthenticatedLayout>
-    );
+            <AppBar position="static" elevation={0}>
+                <Toolbar sx={{ justifyContent: 'space-between' }}>
+                    <Typography variant="h6" fontWeight={700}>
+                        Project Tracker
+                    </Typography>
+
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <Typography variant="body2">
+                            {auth?.user?.name}
+                        </Typography>
+
+                        <Button
+                            variant="outlined"
+                            color="inherit"
+                            onClick={handleLogout}
+                        >
+                            Logout
+                        </Button>
+                    </Stack>
+                </Toolbar>
+            </AppBar>
+
+            <Container maxWidth="lg">
+                <Box sx={{ py: 6 }}>
+                    <Typography variant="h4" fontWeight={700}>
+                        Dashboard
+                    </Typography>
+                </Box>
+            </Container>
+        </>
+    )
 }

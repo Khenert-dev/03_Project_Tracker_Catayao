@@ -8,7 +8,7 @@ use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
-| Public Landing Page
+| Public Routes
 |--------------------------------------------------------------------------
 */
 
@@ -25,30 +25,29 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', function () {
-        return redirect()->route('projects.index');
+        return Inertia::render('Dashboard');
     })->name('dashboard');
 
     Route::resource('projects', ProjectController::class);
-    Route::resource('tasks', TaskController::class);
 
-    Route::post('/tasks/{task}/toggle-status', function (\App\Models\Task $task) {
-        $task->update([
-            'status' => $task->status === 'pending'
-                ? 'completed'
-                : 'pending'
-        ]);
+    Route::resource('tasks', TaskController::class)->except(['create', 'edit']);
 
-        return back();
-    })->name('tasks.toggle');
+    Route::patch('/tasks/{task}/toggle-status', [TaskController::class, 'toggle'])
+        ->name('tasks.toggle');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Auth Scaffolding
+| Authentication Routes
 |--------------------------------------------------------------------------
 */
 

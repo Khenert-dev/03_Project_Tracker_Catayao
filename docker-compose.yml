@@ -6,7 +6,6 @@ services:
     container_name: project_tracker_web
     ports:
       - "8000:80"
-      - "5173:5173"
     volumes:
       - ./src:/var/www/html
     depends_on:

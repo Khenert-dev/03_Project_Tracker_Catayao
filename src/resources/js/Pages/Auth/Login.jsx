@@ -8,11 +8,13 @@ import {
     Typography,
     Checkbox,
     FormControlLabel,
-    Stack
+    Stack,
+    CircularProgress,
+    Divider,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 
-export default function Login({ canResetPassword }) {
+export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -37,38 +39,45 @@ export default function Login({ canResetPassword }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     background:
-                        'linear-gradient(135deg, #141e30 0%, #243b55 100%)',
+                        'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #111827 100%)',
                     p: 2,
                 }}
             >
                 <Card
                     sx={{
-                        width: 420,
-                        backdropFilter: 'blur(18px)',
+                        width: 460,
+                        borderRadius: 5,
                         background: alpha('#ffffff', 0.08),
+                        backdropFilter: 'blur(25px)',
                         border: '1px solid rgba(255,255,255,0.15)',
-                        borderRadius: 4,
                         boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
                         color: '#fff',
                     }}
                 >
-                    <CardContent sx={{ p: 5 }}>
-                        <Typography
-                            variant="h4"
-                            fontWeight={700}
-                            textAlign="center"
-                            gutterBottom
-                        >
-                            Project Tracker
-                        </Typography>
+                    <CardContent sx={{ p: 6 }}>
+                        <Stack spacing={1} alignItems="center" mb={4}>
+                            <Typography variant="h4" fontWeight={800}>
+                                Welcome Back
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                sx={{ opacity: 0.7 }}
+                            >
+                                Sign in to continue
+                            </Typography>
+                        </Stack>
 
-                        <Typography
-                            variant="body2"
-                            textAlign="center"
-                            sx={{ opacity: 0.7, mb: 4 }}
-                        >
-                            Secure Access Portal
-                        </Typography>
+                        {status && (
+                            <Typography
+                                sx={{
+                                    mb: 3,
+                                    color: '#4caf50',
+                                    textAlign: 'center',
+                                }}
+                            >
+                                {status}
+                            </Typography>
+                        )}
 
                         <form onSubmit={submit}>
                             <Stack spacing={3}>
@@ -76,17 +85,25 @@ export default function Login({ canResetPassword }) {
                                     label="Email"
                                     type="email"
                                     fullWidth
+                                    variant="outlined"
                                     value={data.email}
                                     onChange={(e) =>
                                         setData('email', e.target.value)
                                     }
                                     error={!!errors.email}
                                     helperText={errors.email}
-                                    InputLabelProps={{
-                                        style: { color: '#fff' },
-                                    }}
-                                    InputProps={{
-                                        style: { color: '#fff' },
+                                    InputLabelProps={{ style: { color: '#ccc' } }}
+                                    sx={{
+                                        input: { color: '#fff' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '& fieldset': {
+                                                borderColor:
+                                                    'rgba(255,255,255,0.3)',
+                                            },
+                                            '&:hover fieldset': {
+                                                borderColor: '#fff',
+                                            },
+                                        },
                                     }}
                                 />
 
@@ -94,17 +111,25 @@ export default function Login({ canResetPassword }) {
                                     label="Password"
                                     type="password"
                                     fullWidth
+                                    variant="outlined"
                                     value={data.password}
                                     onChange={(e) =>
                                         setData('password', e.target.value)
                                     }
                                     error={!!errors.password}
                                     helperText={errors.password}
-                                    InputLabelProps={{
-                                        style: { color: '#fff' },
-                                    }}
-                                    InputProps={{
-                                        style: { color: '#fff' },
+                                    InputLabelProps={{ style: { color: '#ccc' } }}
+                                    sx={{
+                                        input: { color: '#fff' },
+                                        '& .MuiOutlinedInput-root': {
+                                            '& fieldset': {
+                                                borderColor:
+                                                    'rgba(255,255,255,0.3)',
+                                            },
+                                            '&:hover fieldset': {
+                                                borderColor: '#fff',
+                                            },
+                                        },
                                     }}
                                 />
 
@@ -118,17 +143,13 @@ export default function Login({ canResetPassword }) {
                                                     e.target.checked
                                                 )
                                             }
-                                            sx={{ color: '#fff' }}
+                                            sx={{
+                                                color: '#fff',
+                                            }}
                                         />
                                     }
-                                    label={
-                                        <Typography
-                                            variant="body2"
-                                            sx={{ color: '#fff' }}
-                                        >
-                                            Remember me
-                                        </Typography>
-                                    }
+                                    label="Remember me"
+                                    sx={{ color: '#ccc' }}
                                 />
 
                                 <Button
@@ -137,41 +158,60 @@ export default function Login({ canResetPassword }) {
                                     size="large"
                                     disabled={processing}
                                     sx={{
-                                        py: 1.5,
+                                        py: 1.4,
                                         borderRadius: 3,
-                                        fontWeight: 600,
+                                        fontWeight: 700,
                                         background:
-                                            'linear-gradient(90deg,#00c6ff,#0072ff)',
-                                        boxShadow:
-                                            '0 10px 30px rgba(0,114,255,0.5)',
+                                            'linear-gradient(90deg, #6366f1, #8b5cf6)',
                                         '&:hover': {
                                             background:
-                                                'linear-gradient(90deg,#0072ff,#00c6ff)',
+                                                'linear-gradient(90deg, #4f46e5, #7c3aed)',
                                         },
                                     }}
                                 >
-                                    Sign In
+                                    {processing ? (
+                                        <CircularProgress
+                                            size={22}
+                                            sx={{ color: '#fff' }}
+                                        />
+                                    ) : (
+                                        'Sign In'
+                                    )}
                                 </Button>
 
-                                {canResetPassword && (
-                                    <Typography
-                                        variant="body2"
-                                        textAlign="center"
-                                        sx={{ opacity: 0.7 }}
-                                    >
+                                <Divider
+                                    sx={{
+                                        backgroundColor:
+                                            'rgba(255,255,255,0.15)',
+                                    }}
+                                />
+
+                                <Stack
+                                    direction="row"
+                                    justifyContent="space-between"
+                                >
+                                    {canResetPassword && (
                                         <Link
-                                            href={route(
-                                                'password.request'
-                                            )}
+                                            href={route('password.request')}
                                             style={{
-                                                color: '#fff',
-                                                textDecoration: 'none',
+                                                color: '#a5b4fc',
+                                                fontSize: 14,
                                             }}
                                         >
                                             Forgot password?
                                         </Link>
-                                    </Typography>
-                                )}
+                                    )}
+
+                                    <Link
+                                        href={route('register')}
+                                        style={{
+                                            color: '#a5b4fc',
+                                            fontSize: 14,
+                                        }}
+                                    >
+                                        Register
+                                    </Link>
+                                </Stack>
                             </Stack>
                         </form>
                     </CardContent>

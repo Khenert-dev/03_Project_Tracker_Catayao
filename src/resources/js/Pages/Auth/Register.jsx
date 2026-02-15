@@ -1,9 +1,15 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react'
+import {
+    Box,
+    Card,
+    CardContent,
+    TextField,
+    Button,
+    Typography,
+    Stack,
+    CircularProgress,
+} from '@mui/material'
+import { alpha } from '@mui/material/styles'
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -11,110 +17,129 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
-    });
+    })
 
     const submit = (e) => {
-        e.preventDefault();
-
+        e.preventDefault()
         post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
-    };
+            onFinish: () =>
+                reset('password', 'password_confirmation'),
+        })
+    }
 
     return (
-        <GuestLayout>
+        <>
             <Head title="Register" />
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background:
+                        'radial-gradient(circle at 20% 20%, #1f2a44 0%, #0f172a 40%, #0a0f1c 100%)',
+                    p: 2,
+                }}
+            >
+                <Card
+                    sx={{
+                        width: 460,
+                        backdropFilter: 'blur(20px)',
+                        background: alpha('#ffffff', 0.06),
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: 4,
+                        boxShadow: '0 40px 100px rgba(0,0,0,0.65)',
+                        color: '#fff',
+                    }}
+                >
+                    <CardContent sx={{ p: 6 }}>
+                        <Typography
+                            variant="h4"
+                            fontWeight={800}
+                            textAlign="center"
+                            gutterBottom
+                        >
+                            Create Account
+                        </Typography>
 
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                    />
+                        <form onSubmit={submit}>
+                            <Stack spacing={3}>
+                                <TextField
+                                    label="Name"
+                                    fullWidth
+                                    value={data.name}
+                                    onChange={(e) =>
+                                        setData('name', e.target.value)
+                                    }
+                                    error={!!errors.name}
+                                    helperText={errors.name}
+                                />
 
-                    <InputError message={errors.name} className="mt-2" />
-                </div>
+                                <TextField
+                                    label="Email"
+                                    type="email"
+                                    fullWidth
+                                    value={data.email}
+                                    onChange={(e) =>
+                                        setData('email', e.target.value)
+                                    }
+                                    error={!!errors.email}
+                                    helperText={errors.email}
+                                />
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
+                                <TextField
+                                    label="Password"
+                                    type="password"
+                                    fullWidth
+                                    value={data.password}
+                                    onChange={(e) =>
+                                        setData('password', e.target.value)
+                                    }
+                                    error={!!errors.password}
+                                    helperText={errors.password}
+                                />
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                    />
+                                <TextField
+                                    label="Confirm Password"
+                                    type="password"
+                                    fullWidth
+                                    value={data.password_confirmation}
+                                    onChange={(e) =>
+                                        setData(
+                                            'password_confirmation',
+                                            e.target.value
+                                        )
+                                    }
+                                />
 
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    size="large"
+                                    disabled={processing}
+                                >
+                                    {processing ? (
+                                        <CircularProgress
+                                            size={22}
+                                            sx={{ color: '#fff' }}
+                                        />
+                                    ) : (
+                                        'Register'
+                                    )}
+                                </Button>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Already registered?
-                    </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
-    );
+                                <Typography textAlign="center">
+                                    Already have an account?{' '}
+                                    <Link href={route('login')}>
+                                        Login
+                                    </Link>
+                                </Typography>
+                            </Stack>
+                        </form>
+                    </CardContent>
+                </Card>
+            </Box>
+        </>
+    )
 }

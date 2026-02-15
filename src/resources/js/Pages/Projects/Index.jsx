@@ -1,5 +1,4 @@
-import { useForm } from '@inertiajs/react'
-import { Inertia } from '@inertiajs/inertia'
+import { useForm, router } from '@inertiajs/react'
 import {
     Box,
     Button,
@@ -17,7 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 
-export default function Index({ projects }) {
+export default function Index({ projects = [] }) {
 
     const projectForm = useForm({
         title: '',
@@ -54,7 +53,6 @@ export default function Index({ projects }) {
                 background: 'linear-gradient(135deg,#0f2027,#203a43,#2c5364)'
             }}
         >
-
             <Typography
                 variant="h4"
                 sx={{ color: 'white', mb: 4, fontWeight: 700 }}
@@ -62,6 +60,7 @@ export default function Index({ projects }) {
                 Project Tracker
             </Typography>
 
+            {/* Create Project */}
             <Card
                 sx={{
                     mb: 5,
@@ -106,8 +105,9 @@ export default function Index({ projects }) {
                 </CardContent>
             </Card>
 
+            {/* Projects */}
             <Stack spacing={4}>
-                {projects.map(project => (
+                {projects?.map(project => (
                     <Card
                         key={project.id}
                         sx={{
@@ -132,7 +132,7 @@ export default function Index({ projects }) {
 
                                 <IconButton
                                     onClick={() =>
-                                        Inertia.delete(`/projects/${project.id}`)
+                                        router.delete(`/projects/${project.id}`)
                                     }
                                     sx={{ color: '#ff6b6b' }}
                                 >
@@ -150,7 +150,7 @@ export default function Index({ projects }) {
                             <Divider sx={{ mb: 3, borderColor: 'rgba(255,255,255,0.1)' }} />
 
                             <Stack spacing={2}>
-                                {project.tasks.map(task => (
+                                {project.tasks?.map(task => (
                                     <Card
                                         key={task.id}
                                         sx={{
@@ -168,9 +168,13 @@ export default function Index({ projects }) {
                                             <Stack direction="row" spacing={2} alignItems="center">
                                                 <IconButton
                                                     onClick={() =>
-                                                        Inertia.post(`/tasks/${task.id}/toggle-status`)
+                                                        router.post(`/tasks/${task.id}/toggle-status`)
                                                     }
-                                                    sx={{ color: task.status === 'completed' ? '#4caf50' : '#aaa' }}
+                                                    sx={{
+                                                        color: task.status === 'completed'
+                                                            ? '#4caf50'
+                                                            : '#aaa'
+                                                    }}
                                                 >
                                                     {task.status === 'completed'
                                                         ? <CheckCircleIcon />
@@ -180,23 +184,24 @@ export default function Index({ projects }) {
                                                 <Box>
                                                     <Typography
                                                         sx={{
-                                                            textDecoration: task.status === 'completed'
-                                                                ? 'line-through'
-                                                                : 'none'
+                                                            textDecoration:
+                                                                task.status === 'completed'
+                                                                    ? 'line-through'
+                                                                    : 'none'
                                                         }}
                                                     >
                                                         {task.title}
                                                     </Typography>
 
                                                     <Typography variant="caption">
-                                                        {task.priority.toUpperCase()}
+                                                        {task.priority?.toUpperCase()}
                                                     </Typography>
                                                 </Box>
                                             </Stack>
 
                                             <IconButton
                                                 onClick={() =>
-                                                    Inertia.delete(`/tasks/${task.id}`)
+                                                    router.delete(`/tasks/${task.id}`)
                                                 }
                                                 sx={{ color: '#ff6b6b' }}
                                             >
