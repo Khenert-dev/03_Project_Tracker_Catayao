@@ -1,36 +1,25 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-/*
-|--------------------------------------------------------------------------
-| Public Routes
-|--------------------------------------------------------------------------
-*/
-
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Routes
-|--------------------------------------------------------------------------
-*/
-
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
 
     Route::resource('projects', ProjectController::class);
 
-    Route::resource('tasks', TaskController::class)->except(['create', 'edit']);
+    Route::resource('tasks', TaskController::class)
+        ->except(['create', 'edit']);
 
     Route::patch('/tasks/{task}/toggle-status', [TaskController::class, 'toggle'])
         ->name('tasks.toggle');
@@ -44,11 +33,5 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 });
-
-/*
-|--------------------------------------------------------------------------
-| Authentication Routes
-|--------------------------------------------------------------------------
-*/
 
 require __DIR__.'/auth.php';

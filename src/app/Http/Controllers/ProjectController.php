@@ -10,36 +10,43 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = auth()->user()
-            ->projects()
-            ->with('tasks')
-            ->latest()
-            ->get();
+        $projects = Project::where('user_id', auth()->id())->get();
 
         return Inertia::render('Projects/Index', [
-            'projects' => $projects,
+            'projects' => $projects
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string'
         ]);
 
-        $request->user()->projects()->create($validated);
+        Project::create([
+            'user_id' => auth()->id(),
+            'title' => $validated['title'],
+            'description' => $validated['description']
+        ]);
 
         return back();
     }
 
+    public function show(Project $project)
+    {
+        $project->load('tasks');
+
+        return Inertia::render('Projects/Show', [
+            'project' => $project
+        ]);
+    }
+
     public function update(Request $request, Project $project)
     {
-        $this->authorize('update', $project);
-
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string'
         ]);
 
         $project->update($validated);
@@ -49,8 +56,6 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        $this->authorize('delete', $project);
-
         $project->delete();
 
         return back();

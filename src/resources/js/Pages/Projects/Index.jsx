@@ -1,22 +1,25 @@
-import { useForm, router } from '@inertiajs/react'
+import { useForm, router, Link } from '@inertiajs/react'
 import {
-    Box,
+    AppBar,
+    Toolbar,
+    Typography,
     Button,
+    Container,
+    Box,
     Card,
     CardContent,
-    Typography,
-    TextField,
     Stack,
-    Select,
-    MenuItem,
+    TextField,
     IconButton,
     Divider
 } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
-export default function Index({ projects = [] }) {
+export default function Index({ projects = [], auth }) {
 
     const projectForm = useForm({
         title: '',
@@ -25,14 +28,12 @@ export default function Index({ projects = [] }) {
 
     const taskForm = useForm({
         project_id: '',
-        title: '',
-        description: '',
-        priority: 'medium'
+        title: ''
     })
 
     const createProject = (e) => {
         e.preventDefault()
-        projectForm.post('/projects', {
+        projectForm.post(route('projects.store'), {
             onSuccess: () => projectForm.reset()
         })
     }
@@ -40,219 +41,255 @@ export default function Index({ projects = [] }) {
     const createTask = (projectId) => {
         taskForm.setData('project_id', projectId)
 
-        taskForm.post('/tasks', {
+        taskForm.post(route('tasks.store'), {
             onSuccess: () => taskForm.reset()
         })
     }
 
     return (
-        <Box
-            sx={{
-                minHeight: '100vh',
-                p: 6,
-                background: 'linear-gradient(135deg,#0f2027,#203a43,#2c5364)'
-            }}
-        >
-            <Typography
-                variant="h4"
-                sx={{ color: 'white', mb: 4, fontWeight: 700 }}
-            >
-                Project Tracker
-            </Typography>
-
-            {/* Create Project */}
-            <Card
+        <>
+            <AppBar
+                position="static"
+                elevation={0}
                 sx={{
-                    mb: 5,
-                    backdropFilter: 'blur(20px)',
-                    background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: 4,
-                    color: 'white'
+                    background: alpha('#ffffff', 0.6),
+                    backdropFilter: 'blur(14px)',
+                    borderBottom: '1px solid rgba(0,0,0,0.05)',
+                    color: '#0f172a'
                 }}
             >
-                <CardContent>
-                    <form onSubmit={createProject}>
-                        <Stack spacing={2}>
-                            <TextField
-                                label="Project Title"
-                                value={projectForm.data.title}
-                                onChange={e => projectForm.setData('title', e.target.value)}
-                                fullWidth
-                                InputLabelProps={{ style: { color: '#fff' } }}
-                                sx={{ input: { color: 'white' } }}
-                            />
-                            <TextField
-                                label="Description"
-                                value={projectForm.data.description}
-                                onChange={e => projectForm.setData('description', e.target.value)}
-                                fullWidth
-                                InputLabelProps={{ style: { color: '#fff' } }}
-                                sx={{ input: { color: 'white' } }}
-                            />
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                sx={{
-                                    background: 'linear-gradient(45deg,#00c6ff,#0072ff)',
-                                    borderRadius: 3
-                                }}
-                            >
-                                Create Project
-                            </Button>
-                        </Stack>
-                    </form>
-                </CardContent>
-            </Card>
+                <Toolbar sx={{ justifyContent: 'space-between' }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <Button
+                            component={Link}
+                            href={route('dashboard')}
+                            startIcon={<ArrowBackIcon />}
+                            sx={{ color: '#0f172a' }}
+                        >
+                            Dashboard
+                        </Button>
 
-            {/* Projects */}
-            <Stack spacing={4}>
-                {projects?.map(project => (
+                        <Typography variant="h6" fontWeight={900}>
+                            Projects
+                        </Typography>
+                    </Stack>
+                </Toolbar>
+            </AppBar>
+
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    background:
+                        'linear-gradient(135deg,#fdfcf8 0%,#f6f1e7 100%)',
+                    py: 6
+                }}
+            >
+                <Container maxWidth="lg">
+
+                    {/* CREATE PROJECT */}
                     <Card
-                        key={project.id}
                         sx={{
-                            backdropFilter: 'blur(25px)',
-                            background: 'rgba(255,255,255,0.06)',
-                            border: '1px solid rgba(255,255,255,0.15)',
-                            borderRadius: 4,
-                            color: 'white',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
+                            mb: 6,
+                            background: alpha('#ffffff', 0.75),
+                            backdropFilter: 'blur(18px)',
+                            border: '1px solid rgba(0,0,0,0.05)',
+                            borderRadius: 4
                         }}
                     >
                         <CardContent>
-
-                            <Stack
-                                direction="row"
-                                justifyContent="space-between"
-                                alignItems="center"
-                            >
-                                <Typography variant="h6" fontWeight={600}>
-                                    {project.title}
-                                </Typography>
-
-                                <IconButton
-                                    onClick={() =>
-                                        router.delete(`/projects/${project.id}`)
-                                    }
-                                    sx={{ color: '#ff6b6b' }}
-                                >
-                                    <DeleteIcon />
-                                </IconButton>
-                            </Stack>
-
                             <Typography
-                                variant="body2"
-                                sx={{ opacity: 0.8, mb: 3 }}
+                                variant="h6"
+                                fontWeight={800}
+                                mb={3}
+                                sx={{ color: '#0f172a' }}
                             >
-                                {project.description}
+                                Create New Project
                             </Typography>
 
-                            <Divider sx={{ mb: 3, borderColor: 'rgba(255,255,255,0.1)' }} />
+                            <form onSubmit={createProject}>
+                                <Stack spacing={3}>
+                                    <TextField
+                                        label="Project Title"
+                                        value={projectForm.data.title}
+                                        onChange={(e) =>
+                                            projectForm.setData('title', e.target.value)
+                                        }
+                                        fullWidth
+                                    />
 
-                            <Stack spacing={2}>
-                                {project.tasks?.map(task => (
-                                    <Card
-                                        key={task.id}
+                                    <TextField
+                                        label="Description"
+                                        value={projectForm.data.description}
+                                        onChange={(e) =>
+                                            projectForm.setData('description', e.target.value)
+                                        }
+                                        multiline
+                                        rows={3}
+                                        fullWidth
+                                    />
+
+                                    <Button
+                                        type="submit"
+                                        variant="contained"
                                         sx={{
-                                            background: 'rgba(0,0,0,0.4)',
-                                            borderRadius: 3,
-                                            p: 2,
-                                            border: '1px solid rgba(255,255,255,0.08)'
+                                            alignSelf: 'flex-start',
+                                            background: '#0f172a',
+                                            '&:hover': {
+                                                background: '#1e293b'
+                                            }
                                         }}
                                     >
-                                        <Stack
-                                            direction="row"
-                                            justifyContent="space-between"
-                                            alignItems="center"
-                                        >
-                                            <Stack direction="row" spacing={2} alignItems="center">
-                                                <IconButton
-                                                    onClick={() =>
-                                                        router.post(`/tasks/${task.id}/toggle-status`)
-                                                    }
-                                                    sx={{
-                                                        color: task.status === 'completed'
-                                                            ? '#4caf50'
-                                                            : '#aaa'
-                                                    }}
-                                                >
-                                                    {task.status === 'completed'
-                                                        ? <CheckCircleIcon />
-                                                        : <RadioButtonUncheckedIcon />}
-                                                </IconButton>
+                                        Create Project
+                                    </Button>
+                                </Stack>
+                            </form>
+                        </CardContent>
+                    </Card>
 
-                                                <Box>
+                    {/* PROJECT LIST */}
+                    <Stack spacing={4}>
+                        {projects.map(project => (
+                            <Card
+                                key={project.id}
+                                sx={{
+                                    background: alpha('#ffffff', 0.75),
+                                    backdropFilter: 'blur(18px)',
+                                    border: '1px solid rgba(0,0,0,0.05)',
+                                    borderRadius: 4
+                                }}
+                            >
+                                <CardContent>
+
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        mb={2}
+                                    >
+                                        <Typography
+                                            variant="h6"
+                                            fontWeight={700}
+                                            sx={{ color: '#0f172a' }}
+                                        >
+                                            {project.title}
+                                        </Typography>
+
+                                        <IconButton
+                                            onClick={() =>
+                                                router.delete(route('projects.destroy', project.id))
+                                            }
+                                            sx={{ color: '#dc2626' }}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </Stack>
+
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ color: '#475569', mb: 3 }}
+                                    >
+                                        {project.description}
+                                    </Typography>
+
+                                    <Divider sx={{ mb: 3 }} />
+
+                                    {/* TASKS */}
+                                    <Stack spacing={2}>
+                                        {project.tasks?.map(task => (
+                                            <Stack
+                                                key={task.id}
+                                                direction="row"
+                                                justifyContent="space-between"
+                                                alignItems="center"
+                                                sx={{
+                                                    p: 2,
+                                                    background: '#f1f5f9',
+                                                    borderRadius: 3
+                                                }}
+                                            >
+                                                <Stack
+                                                    direction="row"
+                                                    spacing={2}
+                                                    alignItems="center"
+                                                >
+                                                    <IconButton
+                                                        onClick={() =>
+                                                            router.patch(
+                                                                route('tasks.toggle', task.id)
+                                                            )
+                                                        }
+                                                        sx={{
+                                                            color: task.completed
+                                                                ? '#16a34a'
+                                                                : '#94a3b8'
+                                                        }}
+                                                    >
+                                                        {task.completed
+                                                            ? <CheckCircleIcon />
+                                                            : <RadioButtonUncheckedIcon />}
+                                                    </IconButton>
+
                                                     <Typography
                                                         sx={{
                                                             textDecoration:
-                                                                task.status === 'completed'
+                                                                task.completed
                                                                     ? 'line-through'
-                                                                    : 'none'
+                                                                    : 'none',
+                                                            color: '#0f172a'
                                                         }}
                                                     >
                                                         {task.title}
                                                     </Typography>
+                                                </Stack>
 
-                                                    <Typography variant="caption">
-                                                        {task.priority?.toUpperCase()}
-                                                    </Typography>
-                                                </Box>
+                                                <IconButton
+                                                    onClick={() =>
+                                                        router.delete(
+                                                            route('tasks.destroy', task.id)
+                                                        )
+                                                    }
+                                                    sx={{ color: '#dc2626' }}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
                                             </Stack>
+                                        ))}
 
-                                            <IconButton
-                                                onClick={() =>
-                                                    router.delete(`/tasks/${task.id}`)
+                                        {/* ADD TASK */}
+                                        <Stack direction="row" spacing={2}>
+                                            <TextField
+                                                size="small"
+                                                placeholder="New task"
+                                                value={taskForm.data.title}
+                                                onChange={(e) =>
+                                                    taskForm.setData('title', e.target.value)
                                                 }
-                                                sx={{ color: '#ff6b6b' }}
+                                                fullWidth
+                                            />
+
+                                            <Button
+                                                variant="contained"
+                                                sx={{
+                                                    background: '#0f172a',
+                                                    '&:hover': {
+                                                        background: '#1e293b'
+                                                    }
+                                                }}
+                                                onClick={() => createTask(project.id)}
                                             >
-                                                <DeleteIcon />
-                                            </IconButton>
+                                                Add
+                                            </Button>
                                         </Stack>
-                                    </Card>
-                                ))}
 
-                                <Stack direction="row" spacing={2}>
-                                    <TextField
-                                        size="small"
-                                        placeholder="New task"
-                                        value={taskForm.data.title}
-                                        onChange={e =>
-                                            taskForm.setData('title', e.target.value)
-                                        }
-                                        sx={{ input: { color: 'white' } }}
-                                    />
+                                    </Stack>
 
-                                    <Select
-                                        size="small"
-                                        value={taskForm.data.priority}
-                                        onChange={e =>
-                                            taskForm.setData('priority', e.target.value)
-                                        }
-                                        sx={{ color: 'white', minWidth: 120 }}
-                                    >
-                                        <MenuItem value="low">Low</MenuItem>
-                                        <MenuItem value="medium">Medium</MenuItem>
-                                        <MenuItem value="high">High</MenuItem>
-                                    </Select>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </Stack>
 
-                                    <Button
-                                        variant="contained"
-                                        sx={{
-                                            background: 'linear-gradient(45deg,#ff512f,#dd2476)',
-                                            borderRadius: 3
-                                        }}
-                                        onClick={() => createTask(project.id)}
-                                    >
-                                        Add
-                                    </Button>
-                                </Stack>
-                            </Stack>
-
-                        </CardContent>
-                    </Card>
-                ))}
-            </Stack>
-
-        </Box>
+                </Container>
+            </Box>
+        </>
     )
 }
