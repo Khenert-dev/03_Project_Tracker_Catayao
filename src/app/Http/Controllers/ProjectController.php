@@ -10,10 +10,21 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = Project::where('user_id', auth()->id())->get();
+        $projects = Project::query()
+            ->where('user_id', auth()->id())
+            ->withCount([
+                'tasks',
+                'tasks as completed_tasks_count' => fn ($query) => $query->where('completed', true),
+            ])
+            ->with([
+                'tasks' => fn ($query) => $query->latest()->take(8),
+            ])
+            ->latest()
+            ->paginate(8)
+            ->withQueryString();
 
         return Inertia::render('Projects/Index', [
-            'projects' => $projects
+            'projects' => $projects,
         ]);
     }
 
@@ -21,13 +32,13 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         Project::create([
             'user_id' => auth()->id(),
             'title' => $validated['title'],
-            'description' => $validated['description']
+            'description' => $validated['description'] ?? null,
         ]);
 
         return back();
@@ -35,18 +46,22 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        $project->load('tasks');
+        $this->authorize('update', $project);
+
+        $project->load(['tasks' => fn ($query) => $query->latest()]);
 
         return Inertia::render('Projects/Show', [
-            'project' => $project
+            'project' => $project,
         ]);
     }
 
     public function update(Request $request, Project $project)
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         $project->update($validated);
@@ -56,6 +71,8 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
+        $this->authorize('delete', $project);
+
         $project->delete();
 
         return back();

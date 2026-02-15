@@ -1,114 +1,48 @@
+import AuthShell from '@/Components/AuthShell'
 import { Head, useForm } from '@inertiajs/react'
-import {
-    Box,
-    Card,
-    CardContent,
-    Typography,
-    TextField,
-    Button,
-    Stack,
-    CircularProgress,
-    Alert,
-} from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { Alert, Button, CircularProgress, Stack, TextField } from '@mui/material'
+
+const fieldSx = {
+    input: { color: '#fff' },
+    '& .MuiFormHelperText-root': { color: '#fecaca' },
+    '& .MuiOutlinedInput-root': {
+        '& fieldset': { borderColor: 'rgba(255,255,255,0.35)' },
+        '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.7)' },
+    },
+    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.72)' },
+}
 
 export default function ForgotPassword({ status }) {
-    const { data, setData, post, processing, errors } = useForm({
-        email: '',
-    })
+    const { data, setData, post, processing, errors } = useForm({ email: '' })
 
-    const submit = (e) => {
-        e.preventDefault()
+    const submit = (event) => {
+        event.preventDefault()
         post(route('password.email'))
     }
 
     return (
         <>
             <Head title="Forgot Password" />
-
-            <Box
-                sx={{
-                    minHeight: '100vh',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background:
-                        'radial-gradient(circle at 20% 20%, #1f2a44 0%, #0f172a 40%, #0a0f1c 100%)',
-                    p: 2,
-                }}
-            >
-                <Card
-                    sx={{
-                        width: 460,
-                        backdropFilter: 'blur(20px)',
-                        background: alpha('#ffffff', 0.06),
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        borderRadius: 4,
-                        boxShadow: '0 40px 100px rgba(0,0,0,0.65)',
-                        color: '#fff',
-                    }}
-                >
-                    <CardContent sx={{ p: 6 }}>
-                        <Typography
-                            variant="h5"
-                            fontWeight={700}
-                            textAlign="center"
-                            gutterBottom
-                        >
-                            Forgot Password
-                        </Typography>
-
-                        <Typography
-                            variant="body2"
-                            textAlign="center"
-                            sx={{ opacity: 0.7, mb: 4 }}
-                        >
-                            Enter your email and we will send you a reset link.
-                        </Typography>
-
-                        {status && (
-                            <Alert
-                                severity="success"
-                                sx={{ mb: 3 }}
-                            >
-                                {status}
-                            </Alert>
-                        )}
-
-                        <form onSubmit={submit}>
-                            <Stack spacing={3}>
-                                <TextField
-                                    label="Email"
-                                    type="email"
-                                    fullWidth
-                                    value={data.email}
-                                    onChange={(e) =>
-                                        setData('email', e.target.value)
-                                    }
-                                    error={!!errors.email}
-                                    helperText={errors.email}
-                                />
-
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    size="large"
-                                    disabled={processing}
-                                >
-                                    {processing ? (
-                                        <CircularProgress
-                                            size={22}
-                                            sx={{ color: '#fff' }}
-                                        />
-                                    ) : (
-                                        'Email Password Reset Link'
-                                    )}
-                                </Button>
-                            </Stack>
-                        </form>
-                    </CardContent>
-                </Card>
-            </Box>
+            <AuthShell title="Forgot Password" subtitle="Enter your email and we will send a password reset link.">
+                {status && <Alert severity="success" sx={{ mb: 2 }}>{status}</Alert>}
+                <form onSubmit={submit}>
+                    <Stack spacing={2.5}>
+                        <TextField
+                            label="Email"
+                            type="email"
+                            value={data.email}
+                            onChange={(event) => setData('email', event.target.value)}
+                            error={Boolean(errors.email)}
+                            helperText={errors.email}
+                            fullWidth
+                            sx={fieldSx}
+                        />
+                        <Button type="submit" variant="contained" disabled={processing} sx={{ textTransform: 'none', py: 1.2 }}>
+                            {processing ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Send Reset Link'}
+                        </Button>
+                    </Stack>
+                </form>
+            </AuthShell>
         </>
     )
 }

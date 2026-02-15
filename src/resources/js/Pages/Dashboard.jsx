@@ -1,43 +1,47 @@
-import { Head, router, Link } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import {
-    AppBar,
-    Toolbar,
-    Typography,
-    Button,
-    Container,
+    Alert,
     Box,
-    Grid,
+    Button,
     Card,
     CardContent,
-    Stack,
-    LinearProgress,
     Chip,
-    Divider,
-    TextField,
-    IconButton,
+    Container,
     Dialog,
-    DialogTitle,
+    DialogActions,
     DialogContent,
     DialogContentText,
-    DialogActions,
+    DialogTitle,
+    Divider,
+    Grid,
+    IconButton,
+    LinearProgress,
     Snackbar,
-    Alert,
-    Skeleton,
-    Fade
+    Stack,
+    TextField,
+    Typography,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
-import DeleteIcon from '@mui/icons-material/Delete'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import AddIcon from '@mui/icons-material/Add'
+import AssignmentIcon from '@mui/icons-material/Assignment'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import DeleteIcon from '@mui/icons-material/Delete'
+import LogoutIcon from '@mui/icons-material/Logout'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
+import TaskIcon from '@mui/icons-material/Task'
 import { useEffect, useMemo, useState } from 'react'
 
+const statCards = [
+    { key: 'totalProjects', label: 'Projects', icon: <AssignmentIcon fontSize="small" /> },
+    { key: 'totalTasks', label: 'Tasks', icon: <TaskIcon fontSize="small" /> },
+    { key: 'completedTasks', label: 'Completed', icon: <CheckCircleIcon fontSize="small" /> },
+]
+
 export default function Dashboard({
-    auth,
     stats = {},
     projects = [],
-    activity = []
+    activity = [],
 }) {
     const [localProjects, setLocalProjects] = useState(projects)
     const [newTask, setNewTask] = useState({})
@@ -46,330 +50,258 @@ export default function Dashboard({
     const [deletingProjectId, setDeletingProjectId] = useState(null)
     const [confirmDeleteId, setConfirmDeleteId] = useState(null)
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
+    const glassCardSx = {
+        borderRadius: 3,
+        background: alpha('#ffffff', 0.78),
+        backdropFilter: 'blur(12px)',
+        border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.14)}`,
+    }
 
     useEffect(() => {
         setLocalProjects(projects)
     }, [projects])
 
+    const hasProjects = useMemo(() => localProjects.length > 0, [localProjects])
+
     const calculateProgress = (project) => {
-        if (!project.tasks?.length) return 0
-        const completed = project.tasks.filter(t => t.completed).length
-        return Math.round((completed / project.tasks.length) * 100)
+        const total = project.tasks_count ?? project.tasks?.length ?? 0
+        if (!total) return 0
+        const completed = project.completed_tasks_count ?? project.tasks?.filter((task) => task.completed).length ?? 0
+        return Math.round((completed / total) * 100)
     }
 
     const toggleTask = (taskId) => {
-        setLoadingTaskIds(prev => [...prev, taskId])
+        setLoadingTaskIds((prev) => [...prev, taskId])
+        setLocalProjects((prev) => prev.map((project) => {
+            let delta = 0
 
-        setLocalProjects(prev =>
-            prev.map(project => ({
+            const tasks = project.tasks?.map((task) => {
+                if (task.id !== taskId) return task
+                const nextCompleted = !task.completed
+                delta = nextCompleted ? 1 : -1
+                return { ...task, completed: nextCompleted }
+            })
+
+            return {
                 ...project,
-                tasks: project.tasks?.map(task =>
-                    task.id === taskId
-                        ? { ...task, completed: !task.completed }
-                        : task
-                )
-            }))
-        )
+                completed_tasks_count: Math.max(0, (project.completed_tasks_count ?? 0) + delta),
+                tasks,
+            }
+        }))
 
         router.patch(route('tasks.toggle', taskId), {}, {
             preserveScroll: true,
-            onError: () => {
-                setSnackbar({
-                    open: true,
-                    message: 'Failed to update task.',
-                    severity: 'error'
-                })
-            },
-            onFinish: () => {
-                setLoadingTaskIds(prev => prev.filter(id => id !== taskId))
-            }
+            onError: () => setSnackbar({ open: true, message: 'Failed to update task.', severity: 'error' }),
+            onFinish: () => setLoadingTaskIds((prev) => prev.filter((id) => id !== taskId)),
         })
     }
 
     const createTask = (projectId) => {
-        const title = newTask[projectId]?.trim()
+        const title = (newTask[projectId] ?? '').trim()
         if (!title) return
 
         setCreatingTaskFor(projectId)
-
-        router.post(route('tasks.store'), {
-            project_id: projectId,
-            title
-        }, {
+        router.post(route('tasks.store'), { project_id: projectId, title }, {
             preserveScroll: true,
             onSuccess: () => {
-                setNewTask(prev => ({ ...prev, [projectId]: '' }))
-                setSnackbar({
-                    open: true,
-                    message: 'Task created successfully.',
-                    severity: 'success'
-                })
+                setNewTask((prev) => ({ ...prev, [projectId]: '' }))
+                setSnackbar({ open: true, message: 'Task created.', severity: 'success' })
             },
-            onError: () => {
-                setSnackbar({
-                    open: true,
-                    message: 'Failed to create task.',
-                    severity: 'error'
-                })
-            },
-            onFinish: () => {
-                setCreatingTaskFor(null)
-            }
+            onError: () => setSnackbar({ open: true, message: 'Failed to create task.', severity: 'error' }),
+            onFinish: () => setCreatingTaskFor(null),
         })
     }
 
-    const deleteProject = (id) => {
-        setDeletingProjectId(id)
-
-        setLocalProjects(prev => prev.filter(p => p.id !== id))
-
-        router.delete(route('projects.destroy', id), {
+    const deleteTask = (taskId) => {
+        router.delete(route('tasks.destroy', taskId), {
             preserveScroll: true,
-            onError: () => {
-                setSnackbar({
-                    open: true,
-                    message: 'Failed to delete project.',
-                    severity: 'error'
-                })
-            },
+            onSuccess: () => setSnackbar({ open: true, message: 'Task deleted.', severity: 'success' }),
+            onError: () => setSnackbar({ open: true, message: 'Failed to delete task.', severity: 'error' }),
+        })
+    }
+
+    const deleteProject = (projectId) => {
+        setDeletingProjectId(projectId)
+        setLocalProjects((prev) => prev.filter((project) => project.id !== projectId))
+
+        router.delete(route('projects.destroy', projectId), {
+            preserveScroll: true,
+            onError: () => setSnackbar({ open: true, message: 'Failed to delete project.', severity: 'error' }),
             onFinish: () => {
                 setDeletingProjectId(null)
                 setConfirmDeleteId(null)
-            }
+            },
         })
     }
-
-    const hasProjects = useMemo(() => localProjects?.length > 0, [localProjects])
 
     return (
         <>
             <Head title="Dashboard" />
 
-            <Container maxWidth="lg">
-                <Box py={6}>
+            <Box
+                sx={{
+                    minHeight: '100vh',
+                    py: { xs: 4, md: 6 },
+                    background: 'linear-gradient(145deg, #fef7ec 0%, #f3f8ff 55%, #eff9f2 100%)',
+                }}
+            >
+                <Container maxWidth="lg">
+                    <Stack spacing={4}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap">
+                            <Typography variant="h4" fontWeight={800}>Dashboard</Typography>
+                            <Stack direction="row" spacing={1.5}>
+                                <Button variant="contained" startIcon={<AddIcon />} component={Link} href={route('projects.index')} sx={{ textTransform: 'none' }}>
+                                    Manage Projects
+                                </Button>
+                                <Button variant="outlined" color="inherit" startIcon={<LogoutIcon />} onClick={() => router.post(route('logout'))} sx={{ textTransform: 'none' }}>
+                                    Logout
+                                </Button>
+                            </Stack>
+                        </Stack>
 
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={5}>
-                        <Typography
-                            variant="h4"
-                            fontWeight={800}
-                            sx={{ letterSpacing: -0.5 }}
-                        >
-                            Dashboard
-                        </Typography>
+                        <Grid container spacing={2}>
+                            {statCards.map((item) => (
+                                <Grid item xs={12} md={4} key={item.key}>
+                                    <Card sx={glassCardSx}>
+                                        <CardContent>
+                                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                <Box>
+                                                    <Typography color="text.secondary">{item.label}</Typography>
+                                                    <Typography variant="h5" fontWeight={800}>{stats[item.key] ?? 0}</Typography>
+                                                </Box>
+                                                <Chip icon={item.icon} label="Live" size="small" />
+                                            </Stack>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            ))}
+                        </Grid>
 
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            component={Link}
-                            href={route('projects.index')}
-                            sx={{
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                px: 3
-                            }}
-                        >
-                            Add Project
-                        </Button>
-                    </Stack>
+                        {!hasProjects && (
+                            <Card sx={{ ...glassCardSx, border: (theme) => `1px dashed ${alpha(theme.palette.text.primary, 0.25)}` }}>
+                                <CardContent>
+                                    <Stack spacing={2} alignItems="center" py={2}>
+                                        <Typography variant="h6" fontWeight={700}>No projects yet</Typography>
+                                        <Typography color="text.secondary">Create your first project to start tracking work.</Typography>
+                                        <Button variant="contained" component={Link} href={route('projects.index')} startIcon={<AddIcon />} sx={{ textTransform: 'none' }}>
+                                            Create Project
+                                        </Button>
+                                    </Stack>
+                                </CardContent>
+                            </Card>
+                        )}
 
-                    {!hasProjects && (
-                        <Card
-                            sx={{
-                                borderRadius: 3,
-                                border: theme => `1px dashed ${alpha(theme.palette.text.primary, 0.2)}`,
-                                backgroundColor: theme => alpha(theme.palette.primary.main, 0.02)
-                            }}
-                        >
-                            <CardContent>
-                                <Stack spacing={2} alignItems="center" py={4}>
-                                    <Typography variant="h6" fontWeight={700}>
-                                        No projects yet
-                                    </Typography>
-                                    <Typography color="text.secondary">
-                                        Start by creating your first project.
-                                    </Typography>
-                                    <Button
-                                        variant="contained"
-                                        component={Link}
-                                        href={route('projects.index')}
-                                        startIcon={<AddIcon />}
-                                        sx={{ textTransform: 'none', borderRadius: 2 }}
-                                    >
-                                        Create Project
-                                    </Button>
-                                </Stack>
-                            </CardContent>
-                        </Card>
-                    )}
+                        <Grid container spacing={3}>
+                            <Grid item xs={12} md={8}>
+                                <Stack spacing={3}>
+                                    {localProjects.map((project) => {
+                                        const progress = calculateProgress(project)
 
-                    <Grid container spacing={4}>
-                        {localProjects.map(project => {
-                            const progress = calculateProgress(project)
+                                        return (
+                                            <Card key={project.id} sx={glassCardSx}>
+                                                <CardContent>
+                                                    <Stack spacing={2}>
+                                                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                            <Typography variant="h6" fontWeight={700}>{project.title}</Typography>
+                                                            <Chip label={`${progress}%`} color={progress === 100 ? 'success' : 'default'} />
+                                                        </Stack>
 
-                            return (
-                                <Grid item xs={12} md={6} key={project.id}>
-                                    <Fade in timeout={300}>
-                                        <Card
-                                            sx={{
-                                                borderRadius: 3,
-                                                transition: '0.25s ease',
-                                                '&:hover': {
-                                                    transform: 'translateY(-4px)',
-                                                    boxShadow: 6
-                                                }
-                                            }}
-                                        >
-                                            <CardContent>
-                                                <Stack spacing={3}>
-
-                                                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                                        <Typography fontWeight={700} variant="h6">
-                                                            {project.title}
+                                                        <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 8 }} />
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            {project.completed_tasks_count ?? 0}/{project.tasks_count ?? project.tasks?.length ?? 0} completed
                                                         </Typography>
 
-                                                        <Chip
-                                                            label={`${progress}%`}
-                                                            color={progress === 100 ? 'success' : 'default'}
-                                                            sx={{ fontWeight: 600 }}
-                                                        />
-                                                    </Stack>
+                                                        <Stack spacing={1}>
+                                                            {project.tasks?.length === 0 && (
+                                                                <Typography variant="body2" color="text.secondary">No tasks yet.</Typography>
+                                                            )}
+                                                            {project.tasks?.map((task) => {
+                                                                const isLoading = loadingTaskIds.includes(task.id)
 
-                                                    <LinearProgress
-                                                        variant="determinate"
-                                                        value={progress}
-                                                        sx={{
-                                                            height: 8,
-                                                            borderRadius: 5
-                                                        }}
-                                                    />
-
-                                                    <Stack spacing={1.5}>
-                                                        {project.tasks?.length === 0 && (
-                                                            <Typography variant="body2" color="text.secondary">
-                                                                No tasks yet.
-                                                            </Typography>
-                                                        )}
-
-                                                        {project.tasks?.map(task => {
-                                                            const isLoading = loadingTaskIds.includes(task.id)
-
-                                                            return (
-                                                                <Stack
-                                                                    key={task.id}
-                                                                    direction="row"
-                                                                    justifyContent="space-between"
-                                                                    alignItems="center"
-                                                                >
-                                                                    <Stack direction="row" spacing={1} alignItems="center">
-                                                                        <IconButton
-                                                                            size="small"
-                                                                            onClick={() => toggleTask(task.id)}
-                                                                            disabled={isLoading}
-                                                                        >
-                                                                            {task.completed
-                                                                                ? <CheckCircleIcon color="success" fontSize="small" />
-                                                                                : <RadioButtonUncheckedIcon fontSize="small" />
-                                                                            }
+                                                                return (
+                                                                    <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 1, borderRadius: 2, backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.04) }}>
+                                                                        <Stack direction="row" spacing={1} alignItems="center">
+                                                                            <IconButton size="small" onClick={() => toggleTask(task.id)} disabled={isLoading}>
+                                                                                {task.completed ? <CheckCircleIcon color="success" fontSize="small" /> : <RadioButtonUncheckedIcon fontSize="small" />}
+                                                                            </IconButton>
+                                                                            <Typography sx={{ textDecoration: task.completed ? 'line-through' : 'none' }}>{task.title}</Typography>
+                                                                        </Stack>
+                                                                        <IconButton size="small" color="error" onClick={() => deleteTask(task.id)}>
+                                                                            <DeleteIcon fontSize="small" />
                                                                         </IconButton>
-
-                                                                        <Typography
-                                                                            sx={{
-                                                                                textDecoration: task.completed ? 'line-through' : 'none',
-                                                                                color: task.completed ? 'text.secondary' : 'text.primary'
-                                                                            }}
-                                                                        >
-                                                                            {task.title}
-                                                                        </Typography>
                                                                     </Stack>
-                                                                </Stack>
-                                                            )
-                                                        })}
+                                                                )
+                                                            })}
+                                                        </Stack>
+
+                                                        <Stack direction="row" spacing={1}>
+                                                            <TextField
+                                                                size="small"
+                                                                fullWidth
+                                                                placeholder="Add task"
+                                                                value={newTask[project.id] ?? ''}
+                                                                onChange={(event) => setNewTask((prev) => ({ ...prev, [project.id]: event.target.value }))}
+                                                                onKeyDown={(event) => {
+                                                                    if (event.key === 'Enter') createTask(project.id)
+                                                                }}
+                                                            />
+                                                            <Button variant="contained" onClick={() => createTask(project.id)} disabled={creatingTaskFor === project.id} sx={{ textTransform: 'none' }}>
+                                                                Add
+                                                            </Button>
+                                                        </Stack>
+
+                                                        <Divider />
+                                                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                            <Button size="small" component={Link} href={route('projects.show', project.id)} startIcon={<OpenInNewIcon />} sx={{ textTransform: 'none' }}>
+                                                                Open
+                                                            </Button>
+                                                            <Button size="small" color="error" startIcon={<DeleteIcon />} disabled={deletingProjectId === project.id} onClick={() => setConfirmDeleteId(project.id)} sx={{ textTransform: 'none' }}>
+                                                                Delete
+                                                            </Button>
+                                                        </Stack>
                                                     </Stack>
+                                                </CardContent>
+                                            </Card>
+                                        )
+                                    })}
+                                </Stack>
+                            </Grid>
 
-                                                    <Stack direction="row" spacing={1}>
-                                                        <TextField
-                                                            size="small"
-                                                            fullWidth
-                                                            placeholder="New task..."
-                                                            value={newTask[project.id] || ''}
-                                                            onChange={(e) =>
-                                                                setNewTask(prev => ({
-                                                                    ...prev,
-                                                                    [project.id]: e.target.value
-                                                                }))
-                                                            }
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === 'Enter') {
-                                                                    createTask(project.id)
-                                                                }
-                                                            }}
-                                                        />
-
-                                                        <Button
-                                                            variant="contained"
-                                                            disabled={creatingTaskFor === project.id}
-                                                            onClick={() => createTask(project.id)}
-                                                            sx={{ textTransform: 'none', borderRadius: 2 }}
-                                                        >
-                                                            Add
-                                                        </Button>
-                                                    </Stack>
-
-                                                    <Divider />
-
-                                                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                                        <Button
-                                                            size="small"
-                                                            component={Link}
-                                                            href={route('projects.show', project.id)}
-                                                            startIcon={<OpenInNewIcon />}
-                                                            sx={{ textTransform: 'none' }}
-                                                        >
-                                                            Open
-                                                        </Button>
-
-                                                        <Button
-                                                            size="small"
-                                                            color="error"
-                                                            startIcon={<DeleteIcon />}
-                                                            disabled={deletingProjectId === project.id}
-                                                            onClick={() => setConfirmDeleteId(project.id)}
-                                                            sx={{ textTransform: 'none' }}
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </Stack>
-
+                            <Grid item xs={12} md={4}>
+                                <Card sx={glassCardSx}>
+                                    <CardContent>
+                                        <Typography variant="h6" fontWeight={700} mb={2}>Recent Activity</Typography>
+                                        <Stack spacing={1}>
+                                            {activity.length === 0 && (
+                                                <Typography variant="body2" color="text.secondary">No recent activity.</Typography>
+                                            )}
+                                            {activity.map((task) => (
+                                                <Stack key={task.id} sx={{ p: 1.2, borderRadius: 2, backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.04) }}>
+                                                    <Typography variant="body2" fontWeight={600}>{task.title}</Typography>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {task.completed ? 'Completed' : 'In progress'}
+                                                    </Typography>
                                                 </Stack>
-                                            </CardContent>
-                                        </Card>
-                                    </Fade>
-                                </Grid>
-                            )
-                        })}
-                    </Grid>
+                                            ))}
+                                        </Stack>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        </Grid>
+                    </Stack>
+                </Container>
+            </Box>
 
-                </Box>
-            </Container>
-
-            <Dialog
-                open={Boolean(confirmDeleteId)}
-                onClose={() => setConfirmDeleteId(null)}
-            >
+            <Dialog open={Boolean(confirmDeleteId)} onClose={() => setConfirmDeleteId(null)}>
                 <DialogTitle>Delete Project</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        This action cannot be undone. All associated tasks will be permanently removed.
+                        This will permanently remove the project and all of its tasks.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setConfirmDeleteId(null)}>
-                        Cancel
-                    </Button>
-                    <Button
-                        color="error"
-                        onClick={() => deleteProject(confirmDeleteId)}
-                    >
+                    <Button onClick={() => setConfirmDeleteId(null)}>Cancel</Button>
+                    <Button color="error" variant="contained" onClick={() => deleteProject(confirmDeleteId)}>
                         Delete
                     </Button>
                 </DialogActions>
@@ -377,18 +309,11 @@ export default function Dashboard({
 
             <Snackbar
                 open={snackbar.open}
-                autoHideDuration={4000}
-                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+                autoHideDuration={3500}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-                <Alert
-                    onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-                    severity={snackbar.severity}
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                >
-                    {snackbar.message}
-                </Alert>
+                <Alert severity={snackbar.severity} variant="filled">{snackbar.message}</Alert>
             </Snackbar>
         </>
     )

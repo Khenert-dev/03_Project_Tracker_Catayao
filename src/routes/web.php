@@ -12,14 +12,14 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
-
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    Route::resource('projects', ProjectController::class);
+    Route::resource('projects', ProjectController::class)
+        ->except(['create', 'edit']);
 
     Route::resource('tasks', TaskController::class)
-        ->except(['create', 'edit']);
+        ->only(['store', 'update', 'destroy']);
 
     Route::patch('/tasks/{task}/toggle-status', [TaskController::class, 'toggle'])
         ->name('tasks.toggle');

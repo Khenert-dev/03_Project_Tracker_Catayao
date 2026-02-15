@@ -12,25 +12,29 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        $projects = Project::with('tasks')
+        $projects = Project::query()
             ->where('user_id', $user->id)
+            ->withCount([
+                'tasks',
+                'tasks as completed_tasks_count' => fn ($query) => $query->where('completed', true),
+            ])
+            ->with([
+                'tasks' => fn ($query) => $query->latest()->take(6),
+            ])
+            ->latest()
+            ->take(6)
             ->get();
 
-        $projectIds = $projects->pluck('id');
-
         $totalProjects = $projects->count();
-
-        $totalTasks = Task::whereIn('project_id', $projectIds)->count();
-
-        $completedTasks = Task::whereIn('project_id', $projectIds)
-            ->where('completed', true)
-            ->count();
+        $totalTasks = (int) $projects->sum('tasks_count');
+        $completedTasks = (int) $projects->sum('completed_tasks_count');
 
         $overdueTasks = 0;
 
-        $activity = Task::whereIn('project_id', $projectIds)
+        $activity = Task::query()
+            ->whereHas('project', fn ($query) => $query->where('user_id', $user->id))
             ->latest()
-            ->take(5)
+            ->take(6)
             ->get();
 
         return Inertia::render('Dashboard', [
