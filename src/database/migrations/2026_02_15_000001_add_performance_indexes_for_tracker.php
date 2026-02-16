@@ -15,6 +15,12 @@ return new class extends Migration
             });
         }
 
+        if (!Schema::hasColumn('tasks', 'project_id')) {
+            Schema::table('tasks', function (Blueprint $table) {
+                $table->unsignedBigInteger('project_id')->nullable();
+            });
+        }
+
         if (!Schema::hasColumn('tasks', 'status')) {
             Schema::table('tasks', function (Blueprint $table) {
                 $table->string('status')->default(Task::STATUS_PENDING);

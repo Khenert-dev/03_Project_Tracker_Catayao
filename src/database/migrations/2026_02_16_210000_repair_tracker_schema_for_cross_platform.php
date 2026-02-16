@@ -11,6 +11,10 @@ return new class extends Migration
     {
         if (Schema::hasTable('tasks')) {
             Schema::table('tasks', function (Blueprint $table) {
+                if (!Schema::hasColumn('tasks', 'project_id')) {
+                    $table->unsignedBigInteger('project_id')->nullable();
+                }
+
                 if (!Schema::hasColumn('tasks', 'description')) {
                     $table->text('description')->nullable();
                 }
@@ -23,6 +27,12 @@ return new class extends Migration
                     $table->string('status')->default(Task::STATUS_PENDING);
                 }
             });
+
+            if (Schema::hasTable('projects') && !Schema::hasIndex('tasks', 'tasks_project_id_index')) {
+                Schema::table('tasks', function (Blueprint $table) {
+                    $table->index('project_id');
+                });
+            }
 
             if (!Schema::hasIndex('tasks', 'tasks_project_created_idx')) {
                 Schema::table('tasks', function (Blueprint $table) {
