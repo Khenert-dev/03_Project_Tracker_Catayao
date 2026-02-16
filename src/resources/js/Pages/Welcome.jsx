@@ -15,6 +15,23 @@ import { alpha } from '@mui/material/styles'
 import { colors } from '@/theme/colors'
 
 export default function Welcome({ auth }) {
+    const primaryButtonSx = {
+        textTransform: 'none',
+        borderRadius: 999,
+        px: 4,
+        py: 1.15,
+        fontWeight: 700,
+        boxShadow: '0 10px 24px rgba(15,23,42,0.18)',
+    }
+
+    const outlineButtonSx = {
+        textTransform: 'none',
+        borderRadius: 999,
+        px: 4,
+        py: 1.1,
+        fontWeight: 700,
+    }
+
     return (
         <>
             <Head title="Project Tracker" />
@@ -71,7 +88,7 @@ export default function Welcome({ auth }) {
                             <Button
                                 component={Link}
                                 href={route('login')}
-                                sx={{ fontWeight: 600, color: colors.brand.deep }}
+                                sx={{ ...outlineButtonSx, fontWeight: 600, color: colors.brand.deep }}
                             >
                                 Login
                             </Button>
@@ -85,8 +102,8 @@ export default function Welcome({ auth }) {
                                         : route('register')
                                 }
                                 sx={{
+                                    ...primaryButtonSx,
                                     background: colors.brand.deep,
-                                    borderRadius: 3,
                                     '&:hover': {
                                         background: colors.brand.dark,
                                     },
@@ -147,11 +164,8 @@ export default function Welcome({ auth }) {
                                         : route('register')
                                 }
                                 sx={{
+                                    ...primaryButtonSx,
                                     background: colors.brand.deep,
-                                    px: 5,
-                                    py: 1.5,
-                                    borderRadius: 3,
-                                    fontWeight: 700,
                                     '&:hover': {
                                         background: colors.brand.dark,
                                     },
@@ -166,10 +180,7 @@ export default function Welcome({ auth }) {
                                 component={Link}
                                 href={route('login')}
                                 sx={{
-                                    px: 5,
-                                    py: 1.5,
-                                    borderRadius: 3,
-                                    fontWeight: 700,
+                                    ...outlineButtonSx,
                                     borderColor: colors.brand.deep,
                                     color: colors.brand.deep,
                                     '&:hover': {
@@ -185,7 +196,7 @@ export default function Welcome({ auth }) {
                     </Box>
 
                     <Box sx={{ pb: 12, position: 'relative', zIndex: 2 }}>
-                        <Grid container spacing={4}>
+                        <Grid container spacing={4} justifyContent="center">
                             {[
                                 {
                                     title: 'Project Management',
@@ -200,10 +211,12 @@ export default function Welcome({ auth }) {
                                     desc: 'Stay structured and complete work faster.',
                                 },
                             ].map((feature) => (
-                                <Grid item xs={12} md={4} key={feature.title}>
+                                <Grid item xs={12} md={4} key={feature.title} sx={{ display: 'flex', justifyContent: 'center' }}>
                                     <Card
                                         sx={{
                                             height: '100%',
+                                            width: '100%',
+                                            maxWidth: 360,
                                             background:
                                                 alpha(colors.white, 0.75),
                                             backdropFilter: 'blur(18px)',

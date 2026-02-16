@@ -60,6 +60,18 @@ export default function Dashboard({
         backdropFilter: 'blur(12px)',
         border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.14)}`,
     }
+    const primaryButtonSx = {
+        textTransform: 'none',
+        borderRadius: 999,
+        px: 2.2,
+        fontWeight: 700,
+    }
+    const outlineButtonSx = {
+        textTransform: 'none',
+        borderRadius: 999,
+        px: 2,
+        fontWeight: 600,
+    }
 
     useEffect(() => {
         setLocalProjects(projects)
@@ -154,13 +166,13 @@ export default function Dashboard({
                         <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap">
                             <Typography variant="h4" fontWeight={800}>Dashboard</Typography>
                             <Stack direction="row" spacing={1.5}>
-                                <Button variant="outlined" component={Link} href={route('tasks.index')} sx={{ textTransform: 'none' }}>
+                                <Button variant="outlined" component={Link} href={route('tasks.index')} sx={outlineButtonSx}>
                                     Tasks
                                 </Button>
-                                <Button variant="contained" startIcon={<AddIcon />} component={Link} href={route('projects.index')} sx={{ textTransform: 'none' }}>
+                                <Button variant="contained" startIcon={<AddIcon />} component={Link} href={route('projects.index')} sx={primaryButtonSx}>
                                     Manage Projects
                                 </Button>
-                                <Button variant="outlined" color="inherit" startIcon={<LogoutIcon />} onClick={() => router.post(route('logout'))} sx={{ textTransform: 'none' }}>
+                                <Button variant="outlined" color="inherit" startIcon={<LogoutIcon />} onClick={() => router.post(route('logout'))} sx={outlineButtonSx}>
                                     Logout
                                 </Button>
                             </Stack>
@@ -190,7 +202,7 @@ export default function Dashboard({
                                     <Stack spacing={2} alignItems="center" py={2}>
                                         <Typography variant="h6" fontWeight={700}>No projects yet</Typography>
                                         <Typography color="text.secondary">Create your first project to start tracking work.</Typography>
-                                        <Button variant="contained" component={Link} href={route('projects.index')} startIcon={<AddIcon />} sx={{ textTransform: 'none' }}>
+                                        <Button variant="contained" component={Link} href={route('projects.index')} startIcon={<AddIcon />} sx={primaryButtonSx}>
                                             Create Project
                                         </Button>
                                     </Stack>

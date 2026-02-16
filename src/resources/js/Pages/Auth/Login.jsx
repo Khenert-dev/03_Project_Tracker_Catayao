@@ -59,11 +59,11 @@ export default function Login({ status, canResetPassword }) {
                         />
                         <FormControlLabel
                             control={(
-                                    <Checkbox
-                                        checked={data.remember}
-                                        onChange={(event) => setData('remember', event.target.checked)}
-                                        sx={{ color: colors.white }}
-                                    />
+                                <Checkbox
+                                    checked={data.remember}
+                                    onChange={(event) => setData('remember', event.target.checked)}
+                                    sx={{ color: colors.brand.deep }}
+                                />
                             )}
                             label="Remember me"
                             sx={{ color: colors.auth.textMuted }}

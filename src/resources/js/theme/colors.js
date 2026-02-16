@@ -1,3 +1,5 @@
+import { alpha } from '@mui/material/styles'
+
 export const colors = {
     white: '#ffffff',
     brand: {
@@ -6,13 +8,13 @@ export const colors = {
         accent: '#164e63',
         primary: '#0f766e',
         secondary: '#ea580c',
-        link: '#bfdbfe',
+        link: '#0f766e',
     },
     background: {
         default: '#f8fafc',
         surfaceGradient: 'linear-gradient(145deg, #f3faf8 0%, #eef5ff 55%, #f1f9f2 100%)',
-        landingGradient: 'linear-gradient(135deg, #f7fbfa 0%, #edf4f2 100%)',
-        authGradient: 'radial-gradient(circle at 15% 15%, #164e63 0%, #0f172a 40%, #111827 100%)',
+        landingGradient: 'linear-gradient(145deg, #f3faf8 0%, #eef5ff 55%, #f1f9f2 100%)',
+        authGradient: 'linear-gradient(145deg, #f3faf8 0%, #eef5ff 55%, #f1f9f2 100%)',
     },
     feedback: {
         success: '#86efac',
@@ -20,19 +22,20 @@ export const colors = {
         danger: '#dc2626',
     },
     auth: {
-        textMuted: 'rgba(255,255,255,0.78)',
-        labelMuted: 'rgba(255,255,255,0.72)',
-        border: 'rgba(255,255,255,0.35)',
-        borderHover: 'rgba(255,255,255,0.7)',
-        divider: 'rgba(255,255,255,0.2)',
-        cardBorder: 'rgba(255,255,255,0.14)',
+        textMuted: 'rgba(15,23,42,0.78)',
+        labelMuted: 'rgba(15,23,42,0.72)',
+        border: 'rgba(15,23,42,0.25)',
+        borderHover: 'rgba(15,23,42,0.45)',
+        divider: 'rgba(15,23,42,0.2)',
+        cardBorder: 'rgba(15,23,42,0.12)',
     },
 }
 
 export const authFieldSx = {
-    input: { color: colors.white },
-    '& .MuiFormHelperText-root': { color: colors.feedback.errorSoft },
+    '& .MuiInputBase-input': { color: 'text.primary' },
+    '& .MuiFormHelperText-root': { color: 'error.main' },
     '& .MuiOutlinedInput-root': {
+        backgroundColor: alpha(colors.white, 0.72),
         '& fieldset': { borderColor: colors.auth.border },
         '&:hover fieldset': { borderColor: colors.auth.borderHover },
     },
