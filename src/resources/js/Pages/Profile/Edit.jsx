@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import { Box, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import LogoutIcon from '@mui/icons-material/Logout'
+import { colors } from '@/theme/colors'
 import DeleteUserForm from './Partials/DeleteUserForm'
 import UpdatePasswordForm from './Partials/UpdatePasswordForm'
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm'
@@ -14,7 +15,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                 sx={{
                     minHeight: '100vh',
                     py: { xs: 4, md: 6 },
-                    background: 'linear-gradient(145deg, #fef7ec 0%, #f3f8ff 55%, #eff9f2 100%)',
+                    background: colors.background.surfaceGradient,
                 }}
             >
                 <Container maxWidth="md">

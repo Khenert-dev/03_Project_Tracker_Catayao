@@ -14,7 +14,7 @@ return new class extends Migration
 
         Schema::table('tasks', function (Blueprint $table) {
             $table->index(['project_id', 'created_at'], 'tasks_project_created_idx');
-            $table->index(['project_id', 'completed'], 'tasks_project_completed_idx');
+            $table->index(['project_id', 'status'], 'tasks_project_status_idx');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     {
         Schema::table('tasks', function (Blueprint $table) {
             $table->dropIndex('tasks_project_created_idx');
-            $table->dropIndex('tasks_project_completed_idx');
+            $table->dropIndex('tasks_project_status_idx');
         });
 
         Schema::table('projects', function (Blueprint $table) {

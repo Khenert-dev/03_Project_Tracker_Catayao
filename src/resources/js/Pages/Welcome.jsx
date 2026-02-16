@@ -12,6 +12,7 @@ import {
     Stack,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
+import { colors } from '@/theme/colors'
 
 export default function Welcome({ auth }) {
     return (
@@ -23,8 +24,7 @@ export default function Welcome({ auth }) {
                     minHeight: '100vh',
                     position: 'relative',
                     overflow: 'hidden',
-                    background:
-                        'linear-gradient(135deg, #fdfcf8 0%, #f6f1e7 100%)',
+                    background: colors.background.landingGradient,
                 }}
             >
                 <Box
@@ -35,7 +35,7 @@ export default function Welcome({ auth }) {
                         top: -150,
                         right: -150,
                         borderRadius: '50%',
-                        background: alpha('#0f172a', 0.05),
+                        background: alpha(colors.brand.deep, 0.05),
                         filter: 'blur(100px)',
                     }}
                 />
@@ -47,7 +47,7 @@ export default function Welcome({ auth }) {
                         bottom: -120,
                         left: -120,
                         borderRadius: '50%',
-                        background: alpha('#1e293b', 0.06),
+                        background: alpha(colors.brand.dark, 0.06),
                         filter: 'blur(100px)',
                     }}
                 />
@@ -56,10 +56,10 @@ export default function Welcome({ auth }) {
                     position="static"
                     elevation={0}
                     sx={{
-                        background: alpha('#ffffff', 0.6),
+                        background: alpha(colors.white, 0.6),
                         backdropFilter: 'blur(14px)',
                         borderBottom: '1px solid rgba(0,0,0,0.05)',
-                        color: '#0f172a',
+                        color: colors.brand.deep,
                     }}
                 >
                     <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -71,7 +71,7 @@ export default function Welcome({ auth }) {
                             <Button
                                 component={Link}
                                 href={route('login')}
-                                sx={{ fontWeight: 600, color: '#0f172a' }}
+                                sx={{ fontWeight: 600, color: colors.brand.deep }}
                             >
                                 Login
                             </Button>
@@ -85,10 +85,10 @@ export default function Welcome({ auth }) {
                                         : route('register')
                                 }
                                 sx={{
-                                    background: '#0f172a',
+                                    background: colors.brand.deep,
                                     borderRadius: 3,
                                     '&:hover': {
-                                        background: '#1e293b',
+                                        background: colors.brand.dark,
                                     },
                                 }}
                             >
@@ -116,7 +116,7 @@ export default function Welcome({ auth }) {
                             variant="h2"
                             fontWeight={900}
                             sx={{
-                                color: '#0f172a',
+                                color: colors.brand.deep,
                                 maxWidth: 850,
                                 lineHeight: 1.2,
                             }}
@@ -130,7 +130,7 @@ export default function Welcome({ auth }) {
 
                         <Typography
                             variant="h6"
-                            sx={{ color: '#475569', maxWidth: 600 }}
+                            sx={{ color: 'text.secondary', maxWidth: 600 }}
                         >
                             A modern project management system built with
                             Laravel, Inertia, React, and Material UI.
@@ -147,13 +147,13 @@ export default function Welcome({ auth }) {
                                         : route('register')
                                 }
                                 sx={{
-                                    background: '#0f172a',
+                                    background: colors.brand.deep,
                                     px: 5,
                                     py: 1.5,
                                     borderRadius: 3,
                                     fontWeight: 700,
                                     '&:hover': {
-                                        background: '#1e293b',
+                                        background: colors.brand.dark,
                                     },
                                 }}
                             >
@@ -170,12 +170,12 @@ export default function Welcome({ auth }) {
                                     py: 1.5,
                                     borderRadius: 3,
                                     fontWeight: 700,
-                                    borderColor: '#0f172a',
-                                    color: '#0f172a',
+                                    borderColor: colors.brand.deep,
+                                    color: colors.brand.deep,
                                     '&:hover': {
                                         backgroundColor:
-                                            alpha('#0f172a', 0.05),
-                                        borderColor: '#0f172a',
+                                            alpha(colors.brand.deep, 0.05),
+                                        borderColor: colors.brand.deep,
                                     },
                                 }}
                             >
@@ -205,7 +205,7 @@ export default function Welcome({ auth }) {
                                         sx={{
                                             height: '100%',
                                             background:
-                                                alpha('#ffffff', 0.75),
+                                                alpha(colors.white, 0.75),
                                             backdropFilter: 'blur(18px)',
                                             border:
                                                 '1px solid rgba(0,0,0,0.05)',
@@ -217,13 +217,13 @@ export default function Welcome({ auth }) {
                                                 variant="h6"
                                                 fontWeight={900}
                                                 gutterBottom
-                                                sx={{ color: '#0f172a' }}
+                                                sx={{ color: colors.brand.deep }}
                                             >
                                                 {feature.title}
                                             </Typography>
                                             <Typography
                                                 variant="body2"
-                                                sx={{ color: '#475569' }}
+                                                sx={{ color: 'text.secondary' }}
                                             >
                                                 {feature.desc}
                                             </Typography>

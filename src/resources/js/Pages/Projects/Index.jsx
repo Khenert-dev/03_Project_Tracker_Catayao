@@ -12,14 +12,19 @@ import {
     DialogContent,
     DialogTitle,
     Divider,
+    FormControl,
+    InputLabel,
     IconButton,
     LinearProgress,
+    MenuItem,
+    Select,
     Snackbar,
     Stack,
     TextField,
     Typography,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
+import { colors } from '@/theme/colors'
 import AddIcon from '@mui/icons-material/Add'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -28,6 +33,10 @@ import EditIcon from '@mui/icons-material/Edit'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import { useEffect, useMemo, useState } from 'react'
+
+const PRIORITY_OPTIONS = ['low', 'medium', 'high']
+const STATUS_PENDING = 'pending'
+const STATUS_COMPLETED = 'completed'
 
 export default function Index({ projects = [] }) {
     const projectCollection = Array.isArray(projects) ? projects : (projects?.data ?? [])
@@ -39,7 +48,7 @@ export default function Index({ projects = [] }) {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
     const glassCardSx = {
         borderRadius: 4,
-        background: alpha('#ffffff', 0.78),
+        background: alpha(colors.white, 0.78),
         backdropFilter: 'blur(12px)',
         border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.14)}`,
     }
@@ -50,11 +59,16 @@ export default function Index({ projects = [] }) {
     }, [projectCollection])
 
     const hasProjects = useMemo(() => localProjects.length > 0, [localProjects])
+    const getTaskInput = (projectId) => taskInputs[projectId] ?? {
+        title: '',
+        description: '',
+        priority: 'medium',
+    }
 
     const calculateProgress = (project) => {
         const total = project.tasks_count ?? project.tasks?.length ?? 0
         if (!total) return 0
-        const completed = project.completed_tasks_count ?? project.tasks?.filter((task) => task.completed).length ?? 0
+        const completed = project.completed_tasks_count ?? project.tasks?.filter((task) => task.status === STATUS_COMPLETED).length ?? 0
         return Math.round((completed / total) * 100)
     }
 
@@ -87,13 +101,23 @@ export default function Index({ projects = [] }) {
     }
 
     const createTask = (projectId) => {
-        const title = (taskInputs[projectId] ?? '').trim()
+        const data = getTaskInput(projectId)
+        const title = data.title.trim()
         if (!title) return
 
-        router.post(route('tasks.store'), { project_id: projectId, title }, {
+        router.post(route('tasks.store'), {
+            project_id: projectId,
+            title,
+            description: data.description,
+            priority: data.priority,
+            status: STATUS_PENDING,
+        }, {
             preserveScroll: true,
             onSuccess: () => {
-                setTaskInputs((prev) => ({ ...prev, [projectId]: '' }))
+                setTaskInputs((prev) => ({
+                    ...prev,
+                    [projectId]: { title: '', description: '', priority: 'medium' },
+                }))
                 setSnackbar({ open: true, message: 'Task created.', severity: 'success' })
             },
             onError: () => setSnackbar({ open: true, message: 'Failed to create task.', severity: 'error' }),
@@ -103,7 +127,12 @@ export default function Index({ projects = [] }) {
     const updateTask = () => {
         if (!editTask?.title?.trim()) return
 
-        router.put(route('tasks.update', editTask.id), { title: editTask.title }, {
+        router.put(route('tasks.update', editTask.id), {
+            title: editTask.title,
+            description: editTask.description ?? '',
+            priority: editTask.priority ?? 'medium',
+            status: editTask.status ?? STATUS_PENDING,
+        }, {
             preserveScroll: true,
             onSuccess: () => {
                 setEditTask(null)
@@ -147,7 +176,7 @@ export default function Index({ projects = [] }) {
                 sx={{
                     minHeight: '100vh',
                     py: { xs: 4, md: 6 },
-                    background: 'linear-gradient(150deg, #fff8f1 0%, #f2f7ff 50%, #edf7f1 100%)',
+                    background: colors.background.surfaceGradient,
                 }}
             >
                 <Container maxWidth="lg">
@@ -238,12 +267,19 @@ export default function Index({ projects = [] }) {
                                                         <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 1, borderRadius: 2, backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.04) }}>
                                                             <Stack direction="row" spacing={1} alignItems="center">
                                                                 <IconButton size="small" onClick={() => toggleTask(task.id)}>
-                                                                    {task.completed ? <CheckCircleIcon color="success" fontSize="small" /> : <RadioButtonUncheckedIcon fontSize="small" />}
+                                                                    {task.status === STATUS_COMPLETED ? <CheckCircleIcon color="success" fontSize="small" /> : <RadioButtonUncheckedIcon fontSize="small" />}
                                                                 </IconButton>
-                                                                <Typography sx={{ textDecoration: task.completed ? 'line-through' : 'none' }}>{task.title}</Typography>
+                                                                <Typography sx={{ textDecoration: task.status === STATUS_COMPLETED ? 'line-through' : 'none' }}>{task.title}</Typography>
+                                                                <Chip size="small" label={task.priority} variant="outlined" />
                                                             </Stack>
                                                             <Stack direction="row" spacing={0.5}>
-                                                                <IconButton size="small" onClick={() => setEditTask({ id: task.id, title: task.title })}>
+                                                                <IconButton size="small" onClick={() => setEditTask({
+                                                                    id: task.id,
+                                                                    title: task.title,
+                                                                    description: task.description ?? '',
+                                                                    priority: task.priority ?? 'medium',
+                                                                    status: task.status ?? STATUS_PENDING,
+                                                                })}>
                                                                     <EditIcon fontSize="small" />
                                                                 </IconButton>
                                                                 <IconButton size="small" color="error" onClick={() => deleteTask(task.id)}>
@@ -253,18 +289,49 @@ export default function Index({ projects = [] }) {
                                                         </Stack>
                                                     ))}
                                                     <Stack direction="row" spacing={1}>
-                                                        <TextField
-                                                            size="small"
-                                                            fullWidth
-                                                            placeholder="New task"
-                                                            value={taskInputs[project.id] ?? ''}
-                                                            onChange={(event) => setTaskInputs((prev) => ({ ...prev, [project.id]: event.target.value }))}
-                                                            onKeyDown={(event) => {
-                                                                if (event.key === 'Enter') {
-                                                                    createTask(project.id)
-                                                                }
-                                                            }}
-                                                        />
+                                                        <Stack spacing={1} sx={{ width: '100%' }}>
+                                                            <TextField
+                                                                size="small"
+                                                                fullWidth
+                                                                placeholder="New task title"
+                                                                value={getTaskInput(project.id).title}
+                                                                onChange={(event) => setTaskInputs((prev) => ({
+                                                                    ...prev,
+                                                                    [project.id]: { ...(prev[project.id] ?? { title: '', description: '', priority: 'medium' }), title: event.target.value },
+                                                                }))}
+                                                            />
+                                                            <TextField
+                                                                size="small"
+                                                                fullWidth
+                                                                placeholder="Task description (optional)"
+                                                                value={getTaskInput(project.id).description}
+                                                                onChange={(event) => setTaskInputs((prev) => ({
+                                                                    ...prev,
+                                                                    [project.id]: { ...(prev[project.id] ?? { title: '', description: '', priority: 'medium' }), description: event.target.value },
+                                                                }))}
+                                                                onKeyDown={(event) => {
+                                                                    if (event.key === 'Enter') {
+                                                                        createTask(project.id)
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </Stack>
+                                                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                                                            <InputLabel id={`priority-label-${project.id}`}>Priority</InputLabel>
+                                                            <Select
+                                                                labelId={`priority-label-${project.id}`}
+                                                                label="Priority"
+                                                                value={getTaskInput(project.id).priority}
+                                                                onChange={(event) => setTaskInputs((prev) => ({
+                                                                    ...prev,
+                                                                    [project.id]: { ...(prev[project.id] ?? { title: '', description: '', priority: 'medium' }), priority: event.target.value },
+                                                                }))}
+                                                            >
+                                                                {PRIORITY_OPTIONS.map((option) => (
+                                                                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                                                                ))}
+                                                            </Select>
+                                                        </FormControl>
                                                         <Button variant="contained" onClick={() => createTask(project.id)} sx={{ textTransform: 'none' }}>
                                                             Add
                                                         </Button>
@@ -331,16 +398,50 @@ export default function Index({ projects = [] }) {
                 </DialogActions>
             </Dialog>
 
-            <Dialog open={Boolean(editTask)} onClose={() => setEditTask(null)} fullWidth maxWidth="xs">
+            <Dialog open={Boolean(editTask)} onClose={() => setEditTask(null)} fullWidth maxWidth="sm">
                 <DialogTitle>Edit Task</DialogTitle>
                 <DialogContent sx={{ pt: 1 }}>
-                    <TextField
-                        label="Task title"
-                        value={editTask?.title ?? ''}
-                        onChange={(event) => setEditTask((prev) => ({ ...prev, title: event.target.value }))}
-                        fullWidth
-                        sx={{ mt: 1 }}
-                    />
+                    <Stack spacing={2} sx={{ mt: 1 }}>
+                        <TextField
+                            label="Task title"
+                            value={editTask?.title ?? ''}
+                            onChange={(event) => setEditTask((prev) => ({ ...prev, title: event.target.value }))}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Description"
+                            value={editTask?.description ?? ''}
+                            onChange={(event) => setEditTask((prev) => ({ ...prev, description: event.target.value }))}
+                            multiline
+                            minRows={2}
+                            fullWidth
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel id="edit-task-priority-label">Priority</InputLabel>
+                            <Select
+                                labelId="edit-task-priority-label"
+                                label="Priority"
+                                value={editTask?.priority ?? 'medium'}
+                                onChange={(event) => setEditTask((prev) => ({ ...prev, priority: event.target.value }))}
+                            >
+                                {PRIORITY_OPTIONS.map((option) => (
+                                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel id="edit-task-status-label">Status</InputLabel>
+                            <Select
+                                labelId="edit-task-status-label"
+                                label="Status"
+                                value={editTask?.status ?? STATUS_PENDING}
+                                onChange={(event) => setEditTask((prev) => ({ ...prev, status: event.target.value }))}
+                            >
+                                <MenuItem value={STATUS_PENDING}>pending</MenuItem>
+                                <MenuItem value={STATUS_COMPLETED}>completed</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Stack>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setEditTask(null)}>Cancel</Button>

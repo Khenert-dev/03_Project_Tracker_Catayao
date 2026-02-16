@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FakeEmailController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
@@ -10,6 +11,7 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
+Route::get('/fake-email', [FakeEmailController::class, 'index'])->name('fake-email.index');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -19,7 +21,7 @@ Route::middleware(['auth'])->group(function () {
         ->except(['create', 'edit']);
 
     Route::resource('tasks', TaskController::class)
-        ->only(['store', 'update', 'destroy']);
+        ->only(['index', 'store', 'update', 'destroy']);
 
     Route::patch('/tasks/{task}/toggle-status', [TaskController::class, 'toggle'])
         ->name('tasks.toggle');

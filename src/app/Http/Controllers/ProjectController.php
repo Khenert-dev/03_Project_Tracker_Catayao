@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,7 +15,7 @@ class ProjectController extends Controller
             ->where('user_id', auth()->id())
             ->withCount([
                 'tasks',
-                'tasks as completed_tasks_count' => fn ($query) => $query->where('completed', true),
+                'tasks as completed_tasks_count' => fn ($query) => $query->where('status', Task::STATUS_COMPLETED),
             ])
             ->with([
                 'tasks' => fn ($query) => $query->latest()->take(8),

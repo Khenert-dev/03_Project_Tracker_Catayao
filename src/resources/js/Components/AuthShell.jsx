@@ -1,5 +1,6 @@
 import { Box, Card, CardContent, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
+import { colors } from '@/theme/colors'
 
 export default function AuthShell({ title, subtitle, width = 460, children }) {
     return (
@@ -10,7 +11,7 @@ export default function AuthShell({ title, subtitle, width = 460, children }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 p: 2,
-                background: 'radial-gradient(circle at 15% 15%, #164e63 0%, #0f172a 40%, #111827 100%)',
+                background: colors.background.authGradient,
             }}
         >
             <Card
@@ -18,10 +19,10 @@ export default function AuthShell({ title, subtitle, width = 460, children }) {
                     width: '100%',
                     maxWidth: width,
                     borderRadius: 4,
-                    color: '#fff',
-                    background: alpha('#ffffff', 0.08),
+                    color: colors.white,
+                    background: alpha(colors.white, 0.08),
                     backdropFilter: 'blur(18px)',
-                    border: '1px solid rgba(255,255,255,0.14)',
+                    border: `1px solid ${colors.auth.cardBorder}`,
                     boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
                 }}
             >

@@ -23,7 +23,9 @@ class ProjectTaskTest extends TestCase
         $task = Task::create([
             'project_id' => $project->id,
             'title' => 'Private task',
-            'completed' => false,
+            'description' => null,
+            'priority' => Task::PRIORITY_MEDIUM,
+            'status' => Task::STATUS_PENDING,
         ]);
 
         $this->get(route('projects.index'))->assertRedirect('/login');
@@ -34,9 +36,12 @@ class ProjectTaskTest extends TestCase
         $this->post(route('tasks.store'), [
             'project_id' => $project->id,
             'title' => 'Task',
+            'priority' => Task::PRIORITY_MEDIUM,
         ])->assertRedirect('/login');
         $this->put(route('tasks.update', $task), [
             'title' => 'Updated',
+            'priority' => Task::PRIORITY_HIGH,
+            'status' => Task::STATUS_PENDING,
         ])->assertRedirect('/login');
     }
 
@@ -113,6 +118,7 @@ class ProjectTaskTest extends TestCase
             ->post(route('tasks.store'), [
                 'project_id' => $project->id,
                 'title' => 'Initial task',
+                'priority' => Task::PRIORITY_MEDIUM,
             ])
             ->assertRedirect();
 
@@ -122,13 +128,17 @@ class ProjectTaskTest extends TestCase
         $this->actingAs($user)
             ->put(route('tasks.update', $task), [
                 'title' => 'Edited task',
+                'description' => 'Edited description',
+                'priority' => Task::PRIORITY_HIGH,
+                'status' => Task::STATUS_PENDING,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
             'title' => 'Edited task',
-            'completed' => false,
+            'priority' => Task::PRIORITY_HIGH,
+            'status' => Task::STATUS_PENDING,
         ]);
 
         $this->actingAs($user)
@@ -137,7 +147,7 @@ class ProjectTaskTest extends TestCase
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
-            'completed' => true,
+            'status' => Task::STATUS_COMPLETED,
         ]);
 
         $this->actingAs($user)
@@ -163,6 +173,7 @@ class ProjectTaskTest extends TestCase
             ->post(route('tasks.store'), [
                 'project_id' => $project->id,
                 'title' => 'Intruder task',
+                'priority' => Task::PRIORITY_MEDIUM,
             ])
             ->assertSessionHasErrors('project_id');
     }
@@ -181,12 +192,16 @@ class ProjectTaskTest extends TestCase
         $task = Task::create([
             'project_id' => $project->id,
             'title' => 'Owner task',
-            'completed' => false,
+            'description' => null,
+            'priority' => Task::PRIORITY_MEDIUM,
+            'status' => Task::STATUS_PENDING,
         ]);
 
         $this->actingAs($intruder)
             ->put(route('tasks.update', $task), [
                 'title' => 'Hacked task',
+                'priority' => Task::PRIORITY_LOW,
+                'status' => Task::STATUS_PENDING,
             ])
             ->assertForbidden();
 

@@ -1,16 +1,7 @@
 import AuthShell from '@/Components/AuthShell'
-import { Head, useForm } from '@inertiajs/react'
-import { Alert, Button, CircularProgress, Stack, TextField } from '@mui/material'
-
-const fieldSx = {
-    input: { color: '#fff' },
-    '& .MuiFormHelperText-root': { color: '#fecaca' },
-    '& .MuiOutlinedInput-root': {
-        '& fieldset': { borderColor: 'rgba(255,255,255,0.35)' },
-        '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.7)' },
-    },
-    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.72)' },
-}
+import { authFieldSx, colors } from '@/theme/colors'
+import { Head, Link, useForm } from '@inertiajs/react'
+import { Alert, Box, Button, CircularProgress, Stack, TextField } from '@mui/material'
 
 export default function ForgotPassword({ status }) {
     const { data, setData, post, processing, errors } = useForm({ email: '' })
@@ -35,11 +26,16 @@ export default function ForgotPassword({ status }) {
                             error={Boolean(errors.email)}
                             helperText={errors.email}
                             fullWidth
-                            sx={fieldSx}
+                            sx={authFieldSx}
                         />
                         <Button type="submit" variant="contained" disabled={processing} sx={{ textTransform: 'none', py: 1.2 }}>
-                            {processing ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Send Reset Link'}
+                            {processing ? <CircularProgress size={20} sx={{ color: colors.white }} /> : 'Send Reset Link'}
                         </Button>
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Link href={route('fake-email.index')} style={{ color: colors.brand.link, fontSize: 13 }}>
+                                Check fake email inbox
+                            </Link>
+                        </Box>
                     </Stack>
                 </form>
             </AuthShell>

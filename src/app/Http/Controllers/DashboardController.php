@@ -16,7 +16,7 @@ class DashboardController extends Controller
             ->where('user_id', $user->id)
             ->withCount([
                 'tasks',
-                'tasks as completed_tasks_count' => fn ($query) => $query->where('completed', true),
+                'tasks as completed_tasks_count' => fn ($query) => $query->where('status', Task::STATUS_COMPLETED),
             ])
             ->with([
                 'tasks' => fn ($query) => $query->latest()->take(6),

@@ -1,15 +1,16 @@
 import { createTheme } from '@mui/material/styles'
+import { colors } from './theme/colors'
 
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#0f766e',
+            main: colors.brand.primary,
         },
         secondary: {
-            main: '#ea580c',
+            main: colors.brand.secondary,
         },
         background: {
-            default: '#f8fafc',
+            default: colors.background.default,
         },
     },
     shape: {

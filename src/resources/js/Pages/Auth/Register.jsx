@@ -1,16 +1,7 @@
 import AuthShell from '@/Components/AuthShell'
+import { authFieldSx, colors } from '@/theme/colors'
 import { Head, Link, useForm } from '@inertiajs/react'
 import { Button, CircularProgress, Stack, TextField, Typography } from '@mui/material'
-
-const fieldSx = {
-    input: { color: '#fff' },
-    '& .MuiFormHelperText-root': { color: '#fecaca' },
-    '& .MuiOutlinedInput-root': {
-        '& fieldset': { borderColor: 'rgba(255,255,255,0.35)' },
-        '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.7)' },
-    },
-    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.72)' },
-}
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -38,7 +29,7 @@ export default function Register() {
                             error={Boolean(errors.name)}
                             helperText={errors.name}
                             fullWidth
-                            sx={fieldSx}
+                            sx={authFieldSx}
                         />
                         <TextField
                             label="Email"
@@ -48,7 +39,7 @@ export default function Register() {
                             error={Boolean(errors.email)}
                             helperText={errors.email}
                             fullWidth
-                            sx={fieldSx}
+                            sx={authFieldSx}
                         />
                         <TextField
                             label="Password"
@@ -58,7 +49,7 @@ export default function Register() {
                             error={Boolean(errors.password)}
                             helperText={errors.password}
                             fullWidth
-                            sx={fieldSx}
+                            sx={authFieldSx}
                         />
                         <TextField
                             label="Confirm Password"
@@ -68,14 +59,14 @@ export default function Register() {
                             error={Boolean(errors.password_confirmation)}
                             helperText={errors.password_confirmation}
                             fullWidth
-                            sx={fieldSx}
+                            sx={authFieldSx}
                         />
                         <Button type="submit" variant="contained" disabled={processing} sx={{ textTransform: 'none', py: 1.2 }}>
-                            {processing ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Register'}
+                            {processing ? <CircularProgress size={20} sx={{ color: colors.white }} /> : 'Register'}
                         </Button>
-                        <Typography textAlign="center" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                        <Typography textAlign="center" sx={{ color: colors.auth.textMuted }}>
                             Already have an account?{' '}
-                            <Link href={route('login')} style={{ color: '#bfdbfe' }}>
+                            <Link href={route('login')} style={{ color: colors.brand.link }}>
                                 Login
                             </Link>
                         </Typography>

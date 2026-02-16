@@ -6,6 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import theme from './theme';
+import { colors } from './theme/colors';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -27,6 +28,6 @@ createInertiaApp({
         );
     },
     progress: {
-        color: '#4B5563',
+        color: colors.brand.dark,
     },
 });

@@ -1,4 +1,5 @@
 import AuthShell from '@/Components/AuthShell'
+import { authFieldSx, colors } from '@/theme/colors'
 import { Head, Link, useForm } from '@inertiajs/react'
 import {
     Box,
@@ -11,16 +12,6 @@ import {
     TextField,
     Typography,
 } from '@mui/material'
-
-const fieldSx = {
-    input: { color: '#fff' },
-    '& .MuiFormHelperText-root': { color: '#fecaca' },
-    '& .MuiOutlinedInput-root': {
-        '& fieldset': { borderColor: 'rgba(255,255,255,0.35)' },
-        '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.7)' },
-    },
-    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.72)' },
-}
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -39,7 +30,7 @@ export default function Login({ status, canResetPassword }) {
             <Head title="Login" />
             <AuthShell title="Welcome Back" subtitle="Sign in to continue to your project tracker.">
                 {status && (
-                    <Typography sx={{ mb: 2, color: '#86efac', textAlign: 'center' }}>
+                    <Typography sx={{ mb: 2, color: colors.feedback.success, textAlign: 'center' }}>
                         {status}
                     </Typography>
                 )}
@@ -54,7 +45,7 @@ export default function Login({ status, canResetPassword }) {
                             error={Boolean(errors.email)}
                             helperText={errors.email}
                             fullWidth
-                            sx={fieldSx}
+                            sx={authFieldSx}
                         />
                         <TextField
                             label="Password"
@@ -64,31 +55,36 @@ export default function Login({ status, canResetPassword }) {
                             error={Boolean(errors.password)}
                             helperText={errors.password}
                             fullWidth
-                            sx={fieldSx}
+                            sx={authFieldSx}
                         />
                         <FormControlLabel
                             control={(
-                                <Checkbox
-                                    checked={data.remember}
-                                    onChange={(event) => setData('remember', event.target.checked)}
-                                    sx={{ color: '#fff' }}
-                                />
+                                    <Checkbox
+                                        checked={data.remember}
+                                        onChange={(event) => setData('remember', event.target.checked)}
+                                        sx={{ color: colors.white }}
+                                    />
                             )}
                             label="Remember me"
-                            sx={{ color: 'rgba(255,255,255,0.78)' }}
+                            sx={{ color: colors.auth.textMuted }}
                         />
                         <Button type="submit" variant="contained" disabled={processing} sx={{ textTransform: 'none', py: 1.2 }}>
-                            {processing ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Sign In'}
+                            {processing ? <CircularProgress size={20} sx={{ color: colors.white }} /> : 'Sign In'}
                         </Button>
-                        <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)' }} />
+                        <Divider sx={{ borderColor: colors.auth.divider }} />
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                             {canResetPassword ? (
-                                <Link href={route('password.request')} style={{ color: '#bfdbfe', fontSize: 14 }}>
+                                <Link href={route('password.request')} style={{ color: colors.brand.link, fontSize: 14 }}>
                                     Forgot password?
                                 </Link>
                             ) : <span />}
-                            <Link href={route('register')} style={{ color: '#bfdbfe', fontSize: 14 }}>
+                            <Link href={route('register')} style={{ color: colors.brand.link, fontSize: 14 }}>
                                 Create account
+                            </Link>
+                        </Box>
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Link href={route('fake-email.index')} style={{ color: colors.brand.link, fontSize: 13 }}>
+                                Open fake email inbox
                             </Link>
                         </Box>
                     </Stack>

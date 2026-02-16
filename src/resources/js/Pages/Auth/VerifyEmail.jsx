@@ -1,4 +1,5 @@
 import AuthShell from '@/Components/AuthShell'
+import { colors } from '@/theme/colors'
 import { Head, Link, useForm } from '@inertiajs/react'
 import { Alert, Button, CircularProgress, Stack } from '@mui/material'
 
@@ -27,7 +28,7 @@ export default function VerifyEmail({ status }) {
                 <form onSubmit={submit}>
                     <Stack spacing={2}>
                         <Button type="submit" variant="contained" size="large" disabled={processing} sx={{ textTransform: 'none' }}>
-                            {processing ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Resend Verification Email'}
+                            {processing ? <CircularProgress size={20} sx={{ color: colors.white }} /> : 'Resend Verification Email'}
                         </Button>
                         <Button component={Link} href={route('logout')} method="post" as="button" variant="outlined" color="inherit" sx={{ textTransform: 'none' }}>
                             Log Out

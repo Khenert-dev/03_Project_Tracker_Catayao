@@ -22,6 +22,7 @@ import {
     Typography,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
+import { colors } from '@/theme/colors'
 import AddIcon from '@mui/icons-material/Add'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -31,6 +32,9 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import TaskIcon from '@mui/icons-material/Task'
 import { useEffect, useMemo, useState } from 'react'
+
+const STATUS_PENDING = 'pending'
+const STATUS_COMPLETED = 'completed'
 
 const statCards = [
     { key: 'totalProjects', label: 'Projects', icon: <AssignmentIcon fontSize="small" /> },
@@ -52,7 +56,7 @@ export default function Dashboard({
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
     const glassCardSx = {
         borderRadius: 3,
-        background: alpha('#ffffff', 0.78),
+        background: alpha(colors.white, 0.78),
         backdropFilter: 'blur(12px)',
         border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.14)}`,
     }
@@ -66,7 +70,7 @@ export default function Dashboard({
     const calculateProgress = (project) => {
         const total = project.tasks_count ?? project.tasks?.length ?? 0
         if (!total) return 0
-        const completed = project.completed_tasks_count ?? project.tasks?.filter((task) => task.completed).length ?? 0
+        const completed = project.completed_tasks_count ?? project.tasks?.filter((task) => task.status === STATUS_COMPLETED).length ?? 0
         return Math.round((completed / total) * 100)
     }
 
@@ -75,12 +79,12 @@ export default function Dashboard({
         setLocalProjects((prev) => prev.map((project) => {
             let delta = 0
 
-            const tasks = project.tasks?.map((task) => {
-                if (task.id !== taskId) return task
-                const nextCompleted = !task.completed
-                delta = nextCompleted ? 1 : -1
-                return { ...task, completed: nextCompleted }
-            })
+                const tasks = project.tasks?.map((task) => {
+                    if (task.id !== taskId) return task
+                    const nextCompleted = task.status !== STATUS_COMPLETED
+                    delta = nextCompleted ? 1 : -1
+                    return { ...task, status: nextCompleted ? STATUS_COMPLETED : STATUS_PENDING }
+                })
 
             return {
                 ...project,
@@ -142,7 +146,7 @@ export default function Dashboard({
                 sx={{
                     minHeight: '100vh',
                     py: { xs: 4, md: 6 },
-                    background: 'linear-gradient(145deg, #fef7ec 0%, #f3f8ff 55%, #eff9f2 100%)',
+                    background: colors.background.surfaceGradient,
                 }}
             >
                 <Container maxWidth="lg">
@@ -150,6 +154,9 @@ export default function Dashboard({
                         <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap">
                             <Typography variant="h4" fontWeight={800}>Dashboard</Typography>
                             <Stack direction="row" spacing={1.5}>
+                                <Button variant="outlined" component={Link} href={route('tasks.index')} sx={{ textTransform: 'none' }}>
+                                    Tasks
+                                </Button>
                                 <Button variant="contained" startIcon={<AddIcon />} component={Link} href={route('projects.index')} sx={{ textTransform: 'none' }}>
                                     Manage Projects
                                 </Button>
@@ -222,9 +229,9 @@ export default function Dashboard({
                                                                     <Stack key={task.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 1, borderRadius: 2, backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.04) }}>
                                                                         <Stack direction="row" spacing={1} alignItems="center">
                                                                             <IconButton size="small" onClick={() => toggleTask(task.id)} disabled={isLoading}>
-                                                                                {task.completed ? <CheckCircleIcon color="success" fontSize="small" /> : <RadioButtonUncheckedIcon fontSize="small" />}
+                                                                                {task.status === STATUS_COMPLETED ? <CheckCircleIcon color="success" fontSize="small" /> : <RadioButtonUncheckedIcon fontSize="small" />}
                                                                             </IconButton>
-                                                                            <Typography sx={{ textDecoration: task.completed ? 'line-through' : 'none' }}>{task.title}</Typography>
+                                                                            <Typography sx={{ textDecoration: task.status === STATUS_COMPLETED ? 'line-through' : 'none' }}>{task.title}</Typography>
                                                                         </Stack>
                                                                         <IconButton size="small" color="error" onClick={() => deleteTask(task.id)}>
                                                                             <DeleteIcon fontSize="small" />
@@ -278,8 +285,8 @@ export default function Dashboard({
                                             {activity.map((task) => (
                                                 <Stack key={task.id} sx={{ p: 1.2, borderRadius: 2, backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.04) }}>
                                                     <Typography variant="body2" fontWeight={600}>{task.title}</Typography>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        {task.completed ? 'Completed' : 'In progress'}
+                                                        <Typography variant="caption" color="text.secondary">
+                                                        {task.status === STATUS_COMPLETED ? 'Completed' : 'Pending'}
                                                     </Typography>
                                                 </Stack>
                                             ))}

@@ -16,7 +16,9 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('title');
-            $table->boolean('completed')->default(false);
+            $table->text('description')->nullable();
+            $table->string('priority')->default('medium');
+            $table->string('status')->default('pending');
 
             $table->timestamps();
         });
