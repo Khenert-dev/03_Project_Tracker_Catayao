@@ -9,7 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasIndex('projects', 'projects_user_created_idx')) {
+        if (
+            Schema::hasColumn('projects', 'user_id')
+            && Schema::hasColumn('projects', 'created_at')
+            && !Schema::hasIndex('projects', 'projects_user_created_idx')
+        ) {
             Schema::table('projects', function (Blueprint $table) {
                 $table->index(['user_id', 'created_at'], 'projects_user_created_idx');
             });
