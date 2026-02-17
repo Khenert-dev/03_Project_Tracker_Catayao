@@ -13,6 +13,7 @@ import {
     DialogTitle,
     Divider,
     FormControl,
+    InputAdornment,
     InputLabel,
     IconButton,
     LinearProgress,
@@ -32,7 +33,14 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import { useEffect, useMemo, useState } from 'react'
+import SearchIcon from '@mui/icons-material/Search'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import CreditsBadge from '@/Components/CreditsBadge'
+import PhoneDock from '@/Components/PhoneDock'
+import PremiumBackdrop from '@/Components/PremiumBackdrop'
+import PremiumPageHero from '@/Components/PremiumPageHero'
+import usePersistedState from '@/hooks/usePersistedState'
+import { getUrlParam, setUrlParams } from '@/utils/urlState'
 
 const PRIORITY_OPTIONS = ['low', 'medium', 'high']
 const STATUS_PENDING = 'pending'
@@ -45,6 +53,11 @@ export default function Index({ projects = [] }) {
     const [editProject, setEditProject] = useState(null)
     const [editTask, setEditTask] = useState(null)
     const [deleteProjectId, setDeleteProjectId] = useState(null)
+    const [deleteTaskId, setDeleteTaskId] = useState(null)
+    const [query, setQuery] = usePersistedState('projects_query', '')
+    const [sortBy, setSortBy] = usePersistedState('projects_sort_by', 'newest')
+    const [animatedIn, setAnimatedIn] = useState(false)
+    const hasInitializedUrlState = useRef(false)
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
     const glassCardSx = {
         borderRadius: 4,
@@ -54,9 +67,35 @@ export default function Index({ projects = [] }) {
     }
 
     const projectForm = useForm({ title: '', description: '' })
+
     useEffect(() => {
         setLocalProjects(projectCollection)
     }, [projectCollection])
+
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => setAnimatedIn(true))
+
+        return () => cancelAnimationFrame(frame)
+    }, [])
+
+    useEffect(() => {
+        const q = getUrlParam('q')
+        const sort = getUrlParam('sort', { allowedValues: ['newest', 'progress', 'alphabetical'] })
+
+        if (q !== null) setQuery(q)
+        if (sort !== null) setSortBy(sort)
+
+        hasInitializedUrlState.current = true
+    }, [setQuery, setSortBy])
+
+    useEffect(() => {
+        if (!hasInitializedUrlState.current) return
+
+        setUrlParams(
+            { q: query, sort: sortBy },
+            { q: '', sort: 'newest' },
+        )
+    }, [query, sortBy])
 
     const hasProjects = useMemo(() => localProjects.length > 0, [localProjects])
     const getTaskInput = (projectId) => taskInputs[projectId] ?? {
@@ -69,8 +108,33 @@ export default function Index({ projects = [] }) {
         const total = project.tasks_count ?? project.tasks?.length ?? 0
         if (!total) return 0
         const completed = project.completed_tasks_count ?? project.tasks?.filter((task) => task.status === STATUS_COMPLETED).length ?? 0
+
         return Math.round((completed / total) * 100)
     }
+
+    const filteredProjects = useMemo(() => {
+        const normalizedQuery = query.trim().toLowerCase()
+
+        const list = localProjects.filter((project) => {
+            if (!normalizedQuery) return true
+
+            return project.title?.toLowerCase().includes(normalizedQuery)
+                || project.description?.toLowerCase().includes(normalizedQuery)
+                || project.tasks?.some((task) => task.title?.toLowerCase().includes(normalizedQuery))
+        })
+
+        return list.sort((a, b) => {
+            if (sortBy === 'progress') {
+                return calculateProgress(b) - calculateProgress(a)
+            }
+
+            if (sortBy === 'alphabetical') {
+                return (a.title ?? '').localeCompare(b.title ?? '')
+            }
+
+            return (b.id ?? 0) - (a.id ?? 0)
+        })
+    }, [localProjects, query, sortBy])
 
     const createProject = (event) => {
         event.preventDefault()
@@ -153,10 +217,15 @@ export default function Index({ projects = [] }) {
         })
     }
 
-    const deleteTask = (taskId) => {
-        router.delete(route('tasks.destroy', taskId), {
+    const deleteTask = () => {
+        if (!deleteTaskId) return
+
+        router.delete(route('tasks.destroy', deleteTaskId), {
             preserveScroll: true,
-            onSuccess: () => setSnackbar({ open: true, message: 'Task deleted.', severity: 'success' }),
+            onSuccess: () => {
+                setDeleteTaskId(null)
+                setSnackbar({ open: true, message: 'Task deleted.', severity: 'success' })
+            },
             onError: () => setSnackbar({ open: true, message: 'Failed to delete task.', severity: 'error' }),
         })
     }
@@ -168,28 +237,41 @@ export default function Index({ projects = [] }) {
         })
     }
 
+    const resetView = () => {
+        setQuery('')
+        setSortBy('newest')
+        setSnackbar({ open: true, message: 'Project view reset.', severity: 'success' })
+    }
+
     return (
         <>
             <Head title="Projects" />
 
             <Box
+                className="phone-web-bg"
                 sx={{
                     minHeight: '100vh',
                     py: { xs: 4, md: 6 },
                     background: colors.background.surfaceGradient,
                 }}
             >
+                <PremiumBackdrop />
                 <Container maxWidth="lg">
-                    <Stack spacing={4}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                                <Button component={Link} href={route('dashboard')} startIcon={<ArrowBackIcon />} sx={{ textTransform: 'none' }}>
-                                    Dashboard
-                                </Button>
-                                <Typography variant="h4" fontWeight={800}>Projects</Typography>
-                            </Stack>
-                            <Chip label={`${projects?.total ?? localProjects.length} total`} sx={{ fontWeight: 700 }} />
-                        </Stack>
+                    <Box className="phone-shell">
+                        <Stack spacing={4}>
+                            <PremiumPageHero
+                                title="Projects"
+                                subtitle="Organize initiatives, add scoped tasks, and keep each project delivery-ready."
+                                chips={[
+                                    { label: `${projects?.total ?? localProjects.length} total`, color: 'primary' },
+                                    { label: `${filteredProjects.length} visible`, variant: 'outlined' },
+                                ]}
+                                rightSlot={(
+                                    <Button component={Link} href={route('dashboard')} startIcon={<ArrowBackIcon />} sx={{ textTransform: 'none' }}>
+                                        Dashboard
+                                    </Button>
+                                )}
+                            />
 
                         <Card sx={glassCardSx}>
                             <CardContent>
@@ -222,6 +304,39 @@ export default function Index({ projects = [] }) {
                             </CardContent>
                         </Card>
 
+                        <Card sx={glassCardSx}>
+                            <CardContent>
+                                <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                                    <TextField
+                                        size="small"
+                                        fullWidth
+                                        value={query}
+                                        onChange={(event) => setQuery(event.target.value)}
+                                        placeholder="Search project names, descriptions, or tasks"
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                    <FormControl size="small" sx={{ minWidth: 160 }}>
+                                        <InputLabel id="projects-sort">Sort</InputLabel>
+                                        <Select labelId="projects-sort" label="Sort" value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                                            <MenuItem value="newest">newest</MenuItem>
+                                            <MenuItem value="progress">progress</MenuItem>
+                                            <MenuItem value="alphabetical">alphabetical</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                    <Chip label={`${filteredProjects.length} visible`} color="primary" variant="outlined" />
+                                    <Button variant="text" onClick={resetView} sx={{ textTransform: 'none' }}>
+                                        Reset View
+                                    </Button>
+                                </Stack>
+                            </CardContent>
+                        </Card>
+
                         {!hasProjects && (
                             <Card sx={glassCardSx}>
                                 <CardContent>
@@ -231,11 +346,23 @@ export default function Index({ projects = [] }) {
                         )}
 
                         <Stack spacing={3}>
-                            {localProjects.map((project) => {
+                            {filteredProjects.map((project, index) => {
                                 const progress = calculateProgress(project)
 
                                 return (
-                                    <Card key={project.id} sx={glassCardSx}>
+                                    <Card
+                                        key={project.id}
+                                        sx={{
+                                            ...glassCardSx,
+                                            animation: animatedIn ? 'taskReveal .45s ease both' : 'none',
+                                            animationDelay: `${index * 60}ms`,
+                                            transition: 'transform .2s ease, box-shadow .2s ease',
+                                            '&:hover': {
+                                                transform: 'translateY(-2px)',
+                                                boxShadow: (theme) => theme.shadows[6],
+                                            },
+                                        }}
+                                    >
                                         <CardContent>
                                             <Stack spacing={2}>
                                                 <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
@@ -282,7 +409,7 @@ export default function Index({ projects = [] }) {
                                                                 })}>
                                                                     <EditIcon fontSize="small" />
                                                                 </IconButton>
-                                                                <IconButton size="small" color="error" onClick={() => deleteTask(task.id)}>
+                                                                <IconButton size="small" color="error" onClick={() => setDeleteTaskId(task.id)}>
                                                                     <DeleteIcon fontSize="small" />
                                                                 </IconButton>
                                                             </Stack>
@@ -368,8 +495,11 @@ export default function Index({ projects = [] }) {
                                 </Button>
                             </Stack>
                         )}
-                    </Stack>
+                        </Stack>
+                        <CreditsBadge />
+                    </Box>
                 </Container>
+                <PhoneDock active="projects" />
             </Box>
 
             <Dialog open={Boolean(editProject)} onClose={() => setEditProject(null)} fullWidth maxWidth="sm">
@@ -393,8 +523,8 @@ export default function Index({ projects = [] }) {
                     </Stack>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setEditProject(null)}>Cancel</Button>
-                    <Button variant="contained" onClick={updateProject}>Save</Button>
+                    <Button onClick={() => setEditProject(null)}>No</Button>
+                    <Button variant="contained" onClick={updateProject}>Yes, save</Button>
                 </DialogActions>
             </Dialog>
 
@@ -444,8 +574,8 @@ export default function Index({ projects = [] }) {
                     </Stack>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setEditTask(null)}>Cancel</Button>
-                    <Button variant="contained" onClick={updateTask}>Save</Button>
+                    <Button onClick={() => setEditTask(null)}>No</Button>
+                    <Button variant="contained" onClick={updateTask}>Yes, save</Button>
                 </DialogActions>
             </Dialog>
 
@@ -455,8 +585,19 @@ export default function Index({ projects = [] }) {
                     <Typography color="text.secondary">This also removes all tasks in this project.</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDeleteProjectId(null)}>Cancel</Button>
-                    <Button color="error" variant="contained" onClick={() => deleteProject(deleteProjectId)}>Delete</Button>
+                    <Button onClick={() => setDeleteProjectId(null)}>No</Button>
+                    <Button color="error" variant="contained" onClick={() => deleteProject(deleteProjectId)}>Yes, delete</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={Boolean(deleteTaskId)} onClose={() => setDeleteTaskId(null)}>
+                <DialogTitle>Delete Task</DialogTitle>
+                <DialogContent>
+                    <Typography color="text.secondary">Delete this task permanently?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteTaskId(null)}>No</Button>
+                    <Button color="error" variant="contained" onClick={deleteTask}>Yes, delete</Button>
                 </DialogActions>
             </Dialog>
 

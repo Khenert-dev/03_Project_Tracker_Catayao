@@ -13,6 +13,8 @@ import {
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { colors } from '@/theme/colors'
+import CreditsBadge from '@/Components/CreditsBadge'
+import PremiumBackdrop from '@/Components/PremiumBackdrop'
 
 export default function Welcome({ auth }) {
     const primaryButtonSx = {
@@ -44,6 +46,7 @@ export default function Welcome({ auth }) {
                     background: colors.background.landingGradient,
                 }}
             >
+                <PremiumBackdrop />
                 <Box
                     sx={{
                         position: 'absolute',
@@ -246,6 +249,7 @@ export default function Welcome({ auth }) {
                             ))}
                         </Grid>
                     </Box>
+                    <CreditsBadge />
                 </Container>
             </Box>
         </>

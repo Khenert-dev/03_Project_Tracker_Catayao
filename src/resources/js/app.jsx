@@ -7,6 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import theme from './theme';
 import { colors } from './theme/colors';
+import RouteTransition from './Components/RouteTransition';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -23,7 +24,9 @@ createInertiaApp({
         root.render(
             <ThemeProvider theme={theme}>
                 <CssBaseline />
-                <App {...props} />
+                <RouteTransition>
+                    <App {...props} />
+                </RouteTransition>
             </ThemeProvider>,
         );
     },
